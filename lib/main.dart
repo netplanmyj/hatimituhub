@@ -60,12 +60,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Map<int, String> typeLabels = {};
+  Map<int, String> categoryLabels = {};
 
   Future<void> fetchTypeLabels() async {
-    final snapshot = await FirebaseFirestore.instance.collection('types').get();
+    final typeSnap = await FirebaseFirestore.instance.collection('types').get();
     typeLabels = {
-      for (var doc in snapshot.docs)
+      for (var doc in typeSnap.docs)
         int.tryParse(doc.id) ?? 0: doc['typeLabel'] as String,
+    };
+    final catSnap = await FirebaseFirestore.instance
+        .collection('categories')
+        .get();
+    categoryLabels = {
+      for (var doc in catSnap.docs)
+        int.tryParse(doc.id) ?? 0: doc['categoryLabel'] as String,
     };
   }
 
@@ -103,6 +111,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ? data['type']
                   : int.tryParse(data['type'].toString()) ?? 0;
               final typeLabel = typeLabels[typeCode] ?? '';
+              final categoryCode = data['category'] is int
+                  ? data['category']
+                  : int.tryParse(data['category']?.toString() ?? '') ?? 0;
+              final categoryLabel = categoryLabels[categoryCode] ?? '';
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -128,17 +140,35 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ],
                     ),
-                    if (typeLabel.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          typeLabel,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
+                    Row(
+                      children: [
+                        if (typeLabel.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 4.0,
+                              right: 8.0,
+                            ),
+                            child: Text(
+                              typeLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        if (categoryLabel.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              categoryLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               );
