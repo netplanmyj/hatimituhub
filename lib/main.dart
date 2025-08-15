@@ -59,6 +59,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  Map<int, String> typeLabels = {};
+
+  Future<void> fetchTypeLabels() async {
+    final snapshot = await FirebaseFirestore.instance.collection('types').get();
+    typeLabels = {
+      for (var doc in snapshot.docs)
+        int.tryParse(doc.id) ?? 0: doc['typeLabel'] as String,
+    };
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTypeLabels().then((_) => setState(() {}));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,26 +99,46 @@ class _MyHomePageState extends State<MyHomePage> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final data = products[index].data() as Map<String, dynamic>;
+              final typeCode = data['type'] is int
+                  ? data['type']
+                  : int.tryParse(data['type'].toString()) ?? 0;
+              final typeLabel = typeLabels[typeCode] ?? '';
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        data['name'] ?? '',
-                        style: const TextStyle(fontSize: 16),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            data['name'] ?? '',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        Text(
+                          data['price'] != null ? '¥${data['price']}' : '',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      data['price'] != null ? '¥${data['price']}' : '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    if (typeLabel.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          typeLabel,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               );
