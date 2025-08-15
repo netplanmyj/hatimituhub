@@ -61,6 +61,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Map<int, String> typeLabels = {};
   Map<int, String> categoryLabels = {};
+  Map<int, String> taxLabels = {};
 
   Future<void> fetchTypeLabels() async {
     final typeSnap = await FirebaseFirestore.instance.collection('types').get();
@@ -74,6 +75,11 @@ class _MyHomePageState extends State<MyHomePage> {
     categoryLabels = {
       for (var doc in catSnap.docs)
         int.tryParse(doc.id) ?? 0: doc['categoryLabel'] as String,
+    };
+    final taxSnap = await FirebaseFirestore.instance.collection('taxes').get();
+    taxLabels = {
+      for (var doc in taxSnap.docs)
+        int.tryParse(doc.id) ?? 0: doc['taxLabel'] as String,
     };
   }
 
@@ -115,6 +121,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ? data['category']
                   : int.tryParse(data['category']?.toString() ?? '') ?? 0;
               final categoryLabel = categoryLabels[categoryCode] ?? '';
+              final taxCode = data['tax'] is int
+                  ? data['tax']
+                  : int.tryParse(data['tax']?.toString() ?? '') ?? 0;
+              final taxLabel = taxLabels[taxCode] ?? '';
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -158,12 +168,26 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         if (categoryLabel.isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
+                            padding: const EdgeInsets.only(
+                              top: 4.0,
+                              right: 8.0,
+                            ),
                             child: Text(
                               categoryLabel,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.blueGrey,
+                              ),
+                            ),
+                          ),
+                        if (taxLabel.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              taxLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.green,
                               ),
                             ),
                           ),
