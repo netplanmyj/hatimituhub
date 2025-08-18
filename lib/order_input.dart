@@ -169,6 +169,7 @@ class _OrderInputPageState extends State<OrderInputPage> {
                   ElevatedButton(
                     onPressed: () async {
                       if (selectedCustomerId == null || orderItems.isEmpty) {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('顧客と明細を入力してください')),
                         );
@@ -192,6 +193,7 @@ class _OrderInputPageState extends State<OrderInputPage> {
                           });
                         }
                         await batch.commit();
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('注文データを保存しました')),
                         );
@@ -211,8 +213,9 @@ class _OrderInputPageState extends State<OrderInputPage> {
                               : [];
                         });
                       } catch (e) {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('保存に失敗しました: ' + e.toString())),
+                          SnackBar(content: Text('保存に失敗しました: ${e.toString()}')),
                         );
                       }
                     },
