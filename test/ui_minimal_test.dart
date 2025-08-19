@@ -35,6 +35,12 @@ class DummyApp extends StatelessWidget {
         appBar: AppBar(
           actions: [
             IconButton(
+              icon: const Icon(Icons.list_alt),
+              onPressed: () {
+                // 必要なら画面遷移など
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.add_shopping_cart),
               onPressed: () {
                 navigatorKey.currentState?.push(
@@ -157,5 +163,20 @@ void main() {
     // 合計
     expect(find.text('合計: 2000'), findsOneWidget);
     expect(find.text('合計: 2400'), findsOneWidget);
+  });
+
+  testWidgets('商品一覧画面が表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(const DummyApp());
+    expect(find.text('商品一覧'), findsOneWidget);
+  });
+
+  testWidgets('注文一覧ボタンが表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(const DummyApp());
+    expect(find.byIcon(Icons.list_alt), findsOneWidget);
+  });
+
+  testWidgets('注文入力ボタンが表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(const DummyApp());
+    expect(find.byIcon(Icons.add_shopping_cart), findsOneWidget);
   });
 }
