@@ -69,6 +69,170 @@ class OrderDetailPage extends StatelessWidget {
   final String orderId;
   const OrderDetailPage({super.key, required this.orderId});
 
+  void showEditDialog(
+    BuildContext context,
+    String itemId,
+    String productId,
+    int quantity,
+  ) async {
+    final productsSnap = await FirebaseFirestore.instance
+        .collection('products')
+        .get();
+    final products = productsSnap.docs;
+    String selectedProductId = productId;
+    int selectedQuantity = quantity;
+
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('明細編集'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<String>(
+                    value: selectedProductId,
+                    items: products.map((doc) {
+                      final name = doc['name'] ?? '';
+                      return DropdownMenuItem(value: doc.id, child: Text(name));
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProductId = value ?? productId;
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: selectedQuantity.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: '数量'),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedQuantity = int.tryParse(val) ?? quantity;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    // 明細削除
+                    await FirebaseFirestore.instance
+                        .collection('orders')
+                        .doc(orderId)
+                        .collection('orderItems')
+                        .doc(itemId)
+                        .delete();
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                  child: const Text('削除', style: TextStyle(color: Colors.red)),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // 明細更新
+                    await FirebaseFirestore.instance
+                        .collection('orders')
+                        .doc(orderId)
+                        .collection('orderItems')
+                        .doc(itemId)
+                        .update({
+                          'productId': selectedProductId,
+                          'quantity': selectedQuantity,
+                        });
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                  child: const Text('保存'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('キャンセル'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showAddDialog(BuildContext context) async {
+    final productsSnap = await FirebaseFirestore.instance
+        .collection('products')
+        .get();
+    final products = productsSnap.docs;
+    if (products.isEmpty) return;
+    // async後のcontext利用前に必ずガード
+    if (!context.mounted) return;
+
+    String selectedProductId = products.first.id;
+    int selectedQuantity = 1;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('明細追加'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<String>(
+                    value: selectedProductId,
+                    items: products.map((doc) {
+                      final name = doc['name'] ?? '';
+                      return DropdownMenuItem(value: doc.id, child: Text(name));
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProductId = value ?? products.first.id;
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: selectedQuantity.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: '数量'),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedQuantity = int.tryParse(val) ?? 1;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('orders')
+                        .doc(orderId)
+                        .collection('orderItems')
+                        .add({
+                          'productId': selectedProductId,
+                          'quantity': selectedQuantity,
+                        });
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                  child: const Text('追加'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('キャンセル'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +277,16 @@ class OrderDetailPage extends StatelessWidget {
                       : '',
                 ),
                 const SizedBox(height: 16),
-                const Text('注文明細'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('注文明細'),
+                    ElevatedButton(
+                      onPressed: () => showAddDialog(context),
+                      child: const Text('明細追加'),
+                    ),
+                  ],
+                ),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
@@ -184,6 +357,25 @@ class OrderDetailPage extends StatelessWidget {
                                         color: Colors.green,
                                       ),
                                       textAlign: TextAlign.right,
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () {
+                                        showEditDialog(
+                                          context,
+                                          items[idx].id,
+                                          productId,
+                                          quantity is int
+                                              ? quantity
+                                              : int.tryParse(
+                                                      quantity.toString(),
+                                                    ) ??
+                                                    0,
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
