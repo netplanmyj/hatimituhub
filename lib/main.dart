@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'order_input.dart';
-import 'order_list.dart';
+import 'order_list_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
@@ -91,6 +91,78 @@ class _MyHomePageState extends State<MyHomePage> {
     fetchTypeLabels().then((_) => setState(() {}));
   }
 
+  Widget buildProductTile(Map<String, dynamic> data) {
+    final typeCode = data['type'] is int
+        ? data['type']
+        : int.tryParse(data['type'].toString()) ?? 0;
+    final typeLabel = typeLabels[typeCode] ?? '';
+    final categoryCode = data['category'] is int
+        ? data['category']
+        : int.tryParse(data['category']?.toString() ?? '') ?? 0;
+    final categoryLabel = categoryLabels[categoryCode] ?? '';
+    final taxCode = data['tax'] is int
+        ? data['tax']
+        : int.tryParse(data['tax']?.toString() ?? '') ?? 0;
+    final taxLabel = taxLabels[taxCode] ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  data['name'] ?? '',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              Text(
+                data['price'] != null ? '¥${data['price']}' : '',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              if (typeLabel.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+                  child: Text(
+                    typeLabel,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+              if (categoryLabel.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+                  child: Text(
+                    categoryLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                ),
+              if (taxLabel.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    taxLabel,
+                    style: const TextStyle(fontSize: 12, color: Colors.green),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,89 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final data = products[index].data() as Map<String, dynamic>;
-              final typeCode = data['type'] is int
-                  ? data['type']
-                  : int.tryParse(data['type'].toString()) ?? 0;
-              final typeLabel = typeLabels[typeCode] ?? '';
-              final categoryCode = data['category'] is int
-                  ? data['category']
-                  : int.tryParse(data['category']?.toString() ?? '') ?? 0;
-              final categoryLabel = categoryLabels[categoryCode] ?? '';
-              final taxCode = data['tax'] is int
-                  ? data['tax']
-                  : int.tryParse(data['tax']?.toString() ?? '') ?? 0;
-              final taxLabel = taxLabels[taxCode] ?? '';
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            data['name'] ?? '',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        Text(
-                          data['price'] != null ? '¥${data['price']}' : '',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        if (typeLabel.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 4.0,
-                              right: 8.0,
-                            ),
-                            child: Text(
-                              typeLabel,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        if (categoryLabel.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 4.0,
-                              right: 8.0,
-                            ),
-                            child: Text(
-                              categoryLabel,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                          ),
-                        if (taxLabel.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              taxLabel,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
+              return buildProductTile(data);
             },
           );
         },
