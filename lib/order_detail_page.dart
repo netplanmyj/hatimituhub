@@ -9,7 +9,7 @@ class OrderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('注文詳細')),
+      appBar: AppBar(title: const Text('注文内容')),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
             .collection('orders')
@@ -30,24 +30,71 @@ class OrderDetailPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('customers')
-                      .doc(customerId)
-                      .get(),
-                  builder: (context, customerSnap) {
-                    String customerName = customerId;
-                    if (customerSnap.hasData && customerSnap.data!.exists) {
-                      customerName =
-                          customerSnap.data!.get('name') ?? customerId;
-                    }
-                    return Text('顧客: $customerName');
-                  },
-                ),
-                Text(
-                  orderDate != null
-                      ? '注文日: ${orderDate.year}/${orderDate.month}/${orderDate.day}'
-                      : '',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('customers')
+                              .doc(customerId)
+                              .get(),
+                          builder: (context, customerSnap) {
+                            String customerName = customerId;
+                            if (customerSnap.hasData &&
+                                customerSnap.data!.exists) {
+                              customerName =
+                                  customerSnap.data!.get('name') ?? customerId;
+                            }
+                            return Text('顧客: $customerName');
+                          },
+                        ),
+                        Text(
+                          orderDate != null
+                              ? '注文日: ${orderDate.year}/${orderDate.month}/${orderDate.day}'
+                              : '',
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: '注文削除',
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('注文削除の確認'),
+                            content: const Text('この注文を削除しますか？'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('キャンセル'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text(
+                                  '削除',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          await FirebaseFirestore.instance
+                              .collection('orders')
+                              .doc(orderId)
+                              .delete();
+                          if (context.mounted) Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 Row(
