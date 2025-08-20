@@ -1,182 +1,82 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:honeysales/main.dart';
+import 'package:honeysales/order_list_page.dart';
+import 'package:honeysales/order_input.dart';
+import 'package:honeysales/order_detail_page.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 
-class DummyOrderInputPage extends StatelessWidget {
-  const DummyOrderInputPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('注文入力')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text('顧客'),
-          Text('注文日:'),
-          Text('注文明細'),
-          Text('明細追加'),
-          Text('注文追加'),
-        ],
-      ),
-    );
+Future<void> waitForWidget(WidgetTester tester, Finder finder, {Duration timeout = const Duration(seconds: 3)}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 100));
+    if (finder.evaluate().isNotEmpty) return;
   }
-}
-
-class DummyApp extends StatelessWidget {
-  const DummyApp({super.key});
-
-  static final navigatorKey = GlobalKey<NavigatorState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      home: Scaffold(
-        appBar: AppBar(
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.list_alt),
-              onPressed: () {
-                // 必要なら画面遷移など
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_shopping_cart),
-              onPressed: () {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (context) => const DummyOrderInputPage(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        body: const Center(child: Text('商品一覧')),
-      ),
-    );
-  }
-}
-
-class DummyOrderListScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> orders;
-  const DummyOrderListScreen({super.key, required this.orders});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('注文一覧')),
-        body: ListView.builder(
-          itemCount: orders.length,
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(order['customerName'], key: Key('customerName_$index')),
-                  ...List.generate(order['items'].length, (itemIdx) {
-                    final item = order['items'][itemIdx];
-                    return Row(
-                      children: [
-                        Text(
-                          item['productName'],
-                          key: Key('productName_${index}_$itemIdx'),
-                        ),
-                        Text(
-                          '${item['quantity']}',
-                          key: Key('quantity_${index}_$itemIdx'),
-                        ),
-                        Text(
-                          '${item['amount']}',
-                          key: Key('amount_${index}_$itemIdx'),
-                        ),
-                      ],
-                    );
-                  }),
-                  Text('合計: ${order['total']}', key: Key('total_$index')),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
+  throw FlutterError('Widget not found: $finder');
 }
 
 void main() {
-  testWidgets('商品一覧画面にカートアイコンが表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const DummyApp());
+
+  late FakeFirebaseFirestore fakeFirestore;
+  setUp(() async {
+    fakeFirestore = FakeFirebaseFirestore();
+    // 顧客データ追加
+    await fakeFirestore.collection('customers').add({
+      'name': 'テスト顧客',
+      'createdAt': DateTime.now(),
+    });
+    // 商品データ追加
+    await fakeFirestore.collection('products').add({
+      'name': 'テスト商品',
+      'price': 1000,
+      'createdAt': DateTime.now(),
+    });
+  });
+  testWidgets('MyAppのトップ画面に注文一覧・注文入力アイコンが表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(MyApp(firestore: fakeFirestore));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.list_alt), findsOneWidget);
     expect(find.byIcon(Icons.add_shopping_cart), findsOneWidget);
   });
 
-  testWidgets('カートアイコンタップで注文入力画面に遷移し、主要項目が表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const DummyApp());
+  testWidgets('注文一覧アイコンタップでOrderListPageに遷移し、注文一覧タイトルが表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(MyApp(firestore: fakeFirestore));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.list_alt));
+    await tester.pump();
+    await waitForWidget(tester, find.text('注文一覧'));
+    expect(find.text('注文一覧'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.add_shopping_cart));
     await tester.pumpAndSettle();
     expect(find.text('注文入力'), findsOneWidget);
+    await tester.pumpWidget(MyApp(firestore: fakeFirestore));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.add_shopping_cart));
+    await tester.pump();
+    await waitForWidget(tester, find.text('注文入力'));
+    expect(find.text('注文入力'), findsOneWidget);
     expect(find.text('顧客'), findsOneWidget);
-    expect(find.text('注文日:'), findsOneWidget);
+    expect(find.text('注文日: '), findsOneWidget);
+  testWidgets('OrderInputPageで顧客・商品選択UIが表示される', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(home: OrderInputPage(firestore: fakeFirestore)));
+      await tester.pumpAndSettle();
+      expect(find.text('顧客'), findsOneWidget);
+      expect(find.text('注文日: '), findsOneWidget);
+      expect(find.text('注文明細'), findsOneWidget);
+      expect(find.text('明細追加'), findsOneWidget);
+      expect(find.text('注文追加'), findsOneWidget);
+  });
+  });
+
+  // OrderDetailPageのテスト例（orderIdはダミー）
+  testWidgets('OrderInputPageのUI要素が表示される', (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(home: OrderInputPage(firestore: fakeFirestore)));
+    await waitForWidget(tester, find.text('顧客'));
+    expect(find.text('顧客'), findsOneWidget);
+    expect(find.text('注文日: '), findsOneWidget);
     expect(find.text('注文明細'), findsOneWidget);
     expect(find.text('明細追加'), findsOneWidget);
     expect(find.text('注文追加'), findsOneWidget);
   });
-
-  testWidgets('注文一覧画面に注文データが表示される', (WidgetTester tester) async {
-    final orders = [
-      {
-        'customerName': '山田太郎',
-        'items': [
-          {'productName': 'はちみつA', 'quantity': 2, 'amount': 1200},
-          {'productName': 'はちみつB', 'quantity': 1, 'amount': 800},
-        ],
-        'total': 2000,
-      },
-      {
-        'customerName': '佐藤花子',
-        'items': [
-          {'productName': 'はちみつC', 'quantity': 3, 'amount': 2400},
-        ],
-        'total': 2400,
-      },
-    ];
-
-    await tester.pumpWidget(DummyOrderListScreen(orders: orders));
-
-    // 顧客名
-    expect(find.text('山田太郎'), findsOneWidget);
-    expect(find.text('佐藤花子'), findsOneWidget);
-    // 商品名
-    expect(find.text('はちみつA'), findsOneWidget);
-    expect(find.text('はちみつB'), findsOneWidget);
-    expect(find.text('はちみつC'), findsOneWidget);
-    // 数量
-    expect(find.text('2'), findsOneWidget);
-    expect(find.text('1'), findsOneWidget);
-    expect(find.text('3'), findsOneWidget);
-    // 金額
-    expect(find.text('1200'), findsOneWidget);
-    expect(find.text('800'), findsOneWidget);
-    expect(find.text('2400'), findsOneWidget);
-    // 合計
-    expect(find.text('合計: 2000'), findsOneWidget);
-    expect(find.text('合計: 2400'), findsOneWidget);
-  });
-
-  testWidgets('商品一覧画面が表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const DummyApp());
-    expect(find.text('商品一覧'), findsOneWidget);
-  });
-
-  testWidgets('注文一覧ボタンが表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const DummyApp());
-    expect(find.byIcon(Icons.list_alt), findsOneWidget);
-  });
-
-  testWidgets('注文入力ボタンが表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const DummyApp());
-    expect(find.byIcon(Icons.add_shopping_cart), findsOneWidget);
-  });
-}
