@@ -44,5 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-*.tar.xz
-flutter_linux_*
+flutter_linux_*.tar.xz
