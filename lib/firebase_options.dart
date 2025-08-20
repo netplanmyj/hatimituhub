@@ -41,10 +41,7 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return test;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -59,5 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'honeysales-9fc34',
     storageBucket: 'honeysales-9fc34.firebasestorage.app',
     iosBundleId: 'com.example.honeysales',
+  );
+
+  // テスト・Linux用のダミーFirebaseOptions（必要に応じて本番値に変更）
+  static const FirebaseOptions test = FirebaseOptions(
+    apiKey: 'test-api-key',
+    appId: '1:55242870581:test:dummyappid',
+    messagingSenderId: '55242870581',
+    projectId: 'honeysales-9fc34',
+    storageBucket: 'honeysales-9fc34.appspot.com',
   );
 }

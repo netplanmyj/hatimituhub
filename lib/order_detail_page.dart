@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'order_item_dialog.dart';
 
+
 class OrderDetailPage extends StatelessWidget {
   final String orderId;
-  const OrderDetailPage({super.key, required this.orderId});
+  final FirebaseFirestore firestore;
+  const OrderDetailPage({super.key, required this.orderId, required this.firestore});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('注文詳細')),
       body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('orders')
-            .doc(orderId)
-            .get(),
+        future: firestore.collection('orders').doc(orderId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -31,15 +30,11 @@ class OrderDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('customers')
-                      .doc(customerId)
-                      .get(),
+                  future: firestore.collection('customers').doc(customerId).get(),
                   builder: (context, customerSnap) {
                     String customerName = customerId;
                     if (customerSnap.hasData && customerSnap.data!.exists) {
-                      customerName =
-                          customerSnap.data!.get('name') ?? customerId;
+                      customerName = customerSnap.data!.get('name') ?? customerId;
                     }
                     return Text('顧客: $customerName');
                   },
@@ -62,92 +57,51 @@ class OrderDetailPage extends StatelessWidget {
                 ),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('orders')
-                        .doc(orderId)
-                        .collection('orderItems')
-                        .snapshots(),
+                    stream: firestore.collection('orders').doc(orderId).collection('orderItems').snapshots(),
                     builder: (context, itemSnapshot) {
-                      if (itemSnapshot.connectionState ==
-                          ConnectionState.waiting) {
+                      if (itemSnapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (!itemSnapshot.hasData ||
-                          itemSnapshot.data!.docs.isEmpty) {
+                      if (!itemSnapshot.hasData || itemSnapshot.data!.docs.isEmpty) {
                         return const Center(child: Text('明細がありません'));
                       }
                       final items = itemSnapshot.data!.docs;
                       return ListView.builder(
                         itemCount: items.length,
                         itemBuilder: (context, idx) {
-                          final item =
-                              items[idx].data() as Map<String, dynamic>;
+                          final item = items[idx].data() as Map<String, dynamic>;
                           final productId = item['productId'] ?? '';
                           final quantity = item['quantity'] ?? 0;
                           return FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('products')
-                                .doc(productId)
-                                .get(),
+                            future: firestore.collection('products').doc(productId).get(),
                             builder: (context, prodSnap) {
                               String productName = productId;
                               int price = 0;
                               if (prodSnap.hasData && prodSnap.data!.exists) {
-                                final prodData =
-                                    prodSnap.data!.data()
-                                        as Map<String, dynamic>;
+                                final prodData = prodSnap.data!.data() as Map<String, dynamic>;
                                 productName = prodData['name'] ?? productId;
                                 price = prodData['price'] ?? 0;
                               }
-                              final total =
-                                  price *
-                                  (quantity is int
-                                      ? quantity
-                                      : int.tryParse(quantity.toString()) ?? 0);
+                              final total = price * (quantity is int ? quantity : int.tryParse(quantity.toString()) ?? 0);
                               return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4.0,
-                                  horizontal: 0,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 0),
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        '商品: $productName',
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
+                                      child: Text('商品: $productName', style: const TextStyle(fontSize: 16)),
                                     ),
-                                    Text(
-                                      '数量: $quantity',
-                                      style: const TextStyle(fontSize: 16),
-                                      textAlign: TextAlign.right,
-                                    ),
+                                    Text('数量: $quantity', style: const TextStyle(fontSize: 16), textAlign: TextAlign.right),
                                     const SizedBox(width: 16),
-                                    Text(
-                                      '¥$total',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.green,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                    ),
+                                    Text('¥$total', style: const TextStyle(fontSize: 16, color: Colors.green), textAlign: TextAlign.right),
                                     IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.blue,
-                                      ),
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
                                       onPressed: () {
                                         orderItemEditDialog(
                                           context,
                                           orderId,
                                           items[idx].id,
                                           productId,
-                                          quantity is int
-                                              ? quantity
-                                              : int.tryParse(
-                                                      quantity.toString(),
-                                                    ) ??
-                                                    0,
+                                          quantity is int ? quantity : int.tryParse(quantity.toString()) ?? 0,
                                         );
                                       },
                                     ),

@@ -5,56 +5,33 @@ import 'order_input.dart';
 import 'order_list_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  final firestore = FirebaseFirestore.instance;
+  runApp(MyApp(firestore: firestore));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final FirebaseFirestore firestore;
+  const MyApp({super.key, required this.firestore});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page', firestore: firestore),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
+  final FirebaseFirestore firestore;
+  const MyHomePage({super.key, required this.title, required this.firestore});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -66,19 +43,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, String> taxLabels = {};
 
   Future<void> fetchTypeLabels() async {
-    final typeSnap = await FirebaseFirestore.instance.collection('types').get();
+    final typeSnap = await widget.firestore.collection('types').get();
     typeLabels = {
       for (var doc in typeSnap.docs)
         int.tryParse(doc.id) ?? 0: doc['typeLabel'] as String,
     };
-    final catSnap = await FirebaseFirestore.instance
-        .collection('categories')
-        .get();
+    final catSnap = await widget.firestore.collection('categories').get();
     categoryLabels = {
       for (var doc in catSnap.docs)
         int.tryParse(doc.id) ?? 0: doc['categoryLabel'] as String,
     };
-    final taxSnap = await FirebaseFirestore.instance.collection('taxes').get();
+    final taxSnap = await widget.firestore.collection('taxes').get();
     taxLabels = {
       for (var doc in taxSnap.docs)
         int.tryParse(doc.id) ?? 0: doc['taxLabel'] as String,
@@ -175,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: '注文一覧',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const OrderListPage()),
+                MaterialPageRoute(builder: (context) => OrderListPage(firestore: widget.firestore)),
               );
             },
           ),
@@ -184,17 +159,14 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: '注文入力',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const OrderInputPage()),
+                MaterialPageRoute(builder: (context) => OrderInputPage(firestore: widget.firestore)),
               );
             },
           ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('products')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
+        stream: widget.firestore.collection('products').orderBy('createdAt', descending: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
