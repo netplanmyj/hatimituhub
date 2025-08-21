@@ -118,7 +118,15 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
                   onPressed: () async {
                     final name = nameController.text.trim();
                     final tel = telController.text.trim();
-                    if (name.isEmpty) return;
+                    if (name.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('名前を入力してください。'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
                     if (customer == null) {
                       await FirebaseFirestore.instance
                           .collection('customers')
