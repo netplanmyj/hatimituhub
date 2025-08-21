@@ -40,7 +40,30 @@ class CustomerMasterPage extends StatelessWidget {
                       .collection('customers')
                       .doc(customer.id)
                       .delete();
-                  if (context.mounted) Navigator.of(context).pop();
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('削除の確認'),
+                      content: const Text('本当にこの顧客を削除しますか？この操作は元に戻せません。'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('キャンセル'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('削除', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await FirebaseFirestore.instance
+                        .collection('customers')
+                        .doc(customer.id)
+                        .delete();
+                    if (context.mounted) Navigator.of(context).pop();
+                  }
                 },
                 child: const Text('削除', style: TextStyle(color: Colors.red)),
               ),
