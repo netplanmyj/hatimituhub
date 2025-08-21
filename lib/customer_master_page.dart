@@ -199,7 +199,7 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
               return ListTile(
                 title: Text(data['name'] ?? ''),
                 subtitle: Text(
-                  '${data.containsKey('tel') ? data['tel'] : ''}'
+                  '${data['tel'] ?? ''}'
                   '${typeLabel.isNotEmpty ? ' / $typeLabel' : ''}',
                 ),
                 trailing: IconButton(
