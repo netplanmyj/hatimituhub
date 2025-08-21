@@ -170,7 +170,6 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
           final customers = snapshot.data?.docs ?? [];
           return ListView.builder(
             itemCount: customers.length,
-            // ...existing code...
             itemBuilder: (context, index) {
               final customer = customers[index];
               final data = customer.data() as Map<String, dynamic>;
