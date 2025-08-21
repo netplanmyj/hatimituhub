@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'customer_master_page.dart';
 import 'order_detail_page.dart';
+import 'order_input.dart';
+import 'product_master_page.dart';
 
 class OrderListPage extends StatelessWidget {
   const OrderListPage({super.key});
@@ -8,7 +11,42 @@ class OrderListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('注文一覧')),
+      appBar: AppBar(
+        title: const Text('注文一覧'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_shopping_cart),
+            tooltip: '注文入力',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const OrderInputPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.inventory),
+            tooltip: '商品管理',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProductMasterPage(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.people),
+            tooltip: '顧客管理',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CustomerMasterPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('orders')
