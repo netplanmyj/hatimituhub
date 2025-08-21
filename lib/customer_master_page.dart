@@ -8,10 +8,7 @@ class CustomerMasterPage extends StatelessWidget {
     final nameController = TextEditingController(text: customer?['name'] ?? '');
     final telController = TextEditingController(
       text:
-          customer != null &&
-              (customer.data() as Map<String, dynamic>).containsKey('tel')
-          ? (customer.data() as Map<String, dynamic>)['tel']
-      text: (customer?.data() as Map<String, dynamic>?)?['tel']?.toString() ?? '',
+          (customer?.data() as Map<String, dynamic>?)?['tel']?.toString() ?? '',
     );
     showDialog(
       context: context,
@@ -40,6 +37,7 @@ class CustomerMasterPage extends StatelessWidget {
                       .collection('customers')
                       .doc(customer.id)
                       .delete();
+                  if (!context.mounted) return;
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -52,7 +50,10 @@ class CustomerMasterPage extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('削除', style: TextStyle(color: Colors.red)),
+                          child: const Text(
+                            '削除',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
