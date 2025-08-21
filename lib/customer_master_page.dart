@@ -11,7 +11,7 @@ class CustomerMasterPage extends StatelessWidget {
           customer != null &&
               (customer.data() as Map<String, dynamic>).containsKey('tel')
           ? (customer.data() as Map<String, dynamic>)['tel']
-          : '',
+      text: (customer?.data() as Map<String, dynamic>?)?['tel']?.toString() ?? '',
     );
     showDialog(
       context: context,
