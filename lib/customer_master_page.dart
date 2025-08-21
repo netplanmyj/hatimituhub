@@ -209,7 +209,6 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
                 ),
               );
             },
-            // ...existing code...
           );
         },
       ),
