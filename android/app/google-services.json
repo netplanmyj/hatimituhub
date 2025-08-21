@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "55242870581",
+    "project_id": "honeysales-9fc34",
+    "storage_bucket": "honeysales-9fc34.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55242870581:android:5058927fc91d5d999c467c",
+        "android_client_info": {
+          "package_name": "com.example.honeysales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55242870581:android:a14a106f58ea96d09c467c",
+        "android_client_info": {
+          "package_name": "jp.netplan.android.honeysales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55242870581:android:1861f435cefe49bc9c467c",
+        "android_client_info": {
+          "package_name": "jp.netplan.honeysales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
