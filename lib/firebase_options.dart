@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '55242870581',
     projectId: 'honeysales-9fc34',
     storageBucket: 'honeysales-9fc34.firebasestorage.app',
-    iosBundleId: 'com.example.honeysales',
+    iosBundleId: 'jp.netplan.ios.honeysales',
   );
 }
