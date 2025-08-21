@@ -49,6 +49,7 @@ class ProductMasterPage extends StatelessWidget {
                   await FirebaseFirestore.instance.collection('products').add({
                     'name': name,
                     'price': price,
+                    'createdAt': FieldValue.serverTimestamp(),
                   });
                 } else {
                   await FirebaseFirestore.instance
