@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'order_input.dart';
 import 'order_list_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'product_master_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -185,6 +186,17 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const OrderInputPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.inventory),
+            tooltip: '商品管理',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProductMasterPage(),
+                ),
               );
             },
           ),
