@@ -16,23 +16,6 @@ class QuantityInput extends StatefulWidget {
 
 class _QuantityInputState extends State<QuantityInput> {
   late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.quantity.toString());
-  }
-
-  @override
-  void didUpdateWidget(covariant QuantityInput oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.quantity.toString() != _controller.text) {
-      _controller.text = widget.quantity.toString();
-    }
-  }
-
-  @override
-  void dispose() {
   late final FocusNode _focusNode;
 
   @override
@@ -79,6 +62,7 @@ class _QuantityInputState extends State<QuantityInput> {
             width: 40,
             child: TextFormField(
               controller: _controller,
+              focusNode: _focusNode,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16),
