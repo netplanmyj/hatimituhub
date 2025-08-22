@@ -33,7 +33,29 @@ class _QuantityInputState extends State<QuantityInput> {
 
   @override
   void dispose() {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.quantity.toString());
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant QuantityInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final trimmedText = _controller.text.trim();
+    final quantityStr = widget.quantity.toString();
+    if (!_focusNode.hasFocus && quantityStr != trimmedText) {
+      _controller.text = quantityStr;
+    }
+  }
+
+  @override
+  void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
