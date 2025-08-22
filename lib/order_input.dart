@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'widgets/quantity_input.dart';
 
 class OrderInputPage extends StatefulWidget {
   const OrderInputPage({super.key});
@@ -64,30 +65,34 @@ class _OrderInputPageState extends State<OrderInputPage> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 顧客選択
-                  const Text('顧客'),
-                  DropdownButton<String>(
-                    value: selectedCustomerId,
-                    items: customers.map((doc) {
-                      final name = doc['name'] ?? '';
-                      return DropdownMenuItem(value: doc.id, child: Text(name));
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCustomerId = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // 注文日
                   Row(
                     children: [
-                      const Text('注文日: '),
+                      // 顧客選択
+                      Expanded(
+                        child: DropdownButton<String>(
+                          value: selectedCustomerId,
+                          items: customers.map((doc) {
+                            final name = doc['name'] ?? '';
+                            return DropdownMenuItem(
+                              value: doc.id,
+                              child: Text(name),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCustomerId = value;
+                            });
+                          },
+                        ),
+                      ),
+                      // 注文日（ラベル省略、右側に年月日表示）
                       Text(
                         '${orderDate.year}/${orderDate.month}/${orderDate.day}',
+                        style: const TextStyle(fontSize: 16),
                       ),
                       IconButton(
                         icon: const Icon(Icons.calendar_today),
@@ -107,120 +112,190 @@ class _OrderInputPageState extends State<OrderInputPage> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 16),
-                  // 注文明細
-                  const Text('注文明細'),
+
                   Expanded(
                     child: ListView.builder(
                       itemCount: orderItems.length,
                       itemBuilder: (context, index) {
                         final item = orderItems[index];
-                        return Row(
-                          children: [
-                            // 商品選択
-                            DropdownButton<String>(
-                              value: item['productId'],
-                              items: products.map((doc) {
-                                final name = doc['name'] ?? '';
-                                return DropdownMenuItem(
-                                  value: doc.id,
-                                  child: Text(name),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  orderItems[index]['productId'] = value;
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            // 数量入力
-                            SizedBox(
-                              width: 60,
-                              child: TextFormField(
-                                initialValue: item['quantity'].toString(),
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: '数量',
-                                ),
-                                onChanged: (val) {
-                                  setState(() {
-                                    orderItems[index]['quantity'] =
-                                        int.tryParse(val) ?? 1;
-                                  });
-                                },
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () => removeOrderItem(index),
-                            ),
-                          ],
+                        final orientation = MediaQuery.of(context).orientation;
+                        final quantity = item['quantity'] as int? ?? 1;
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: orientation == Orientation.portrait
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // 商品名
+                                      DropdownButton<String>(
+                                        value: item['productId'],
+                                        items: products.map((doc) {
+                                          final name = doc['name'] ?? '';
+                                          return DropdownMenuItem(
+                                            value: doc.id,
+                                            child: Text(name),
+                                          );
+                                        }).toList(),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            orderItems[index]['productId'] =
+                                                value;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(height: 8),
+                                      // 数量入力ウィジェット（分離版）
+                                      QuantityInput(
+                                        quantity: quantity,
+                                        onChanged: (newQuantity) {
+                                          setState(() {
+                                            orderItems[index]['quantity'] =
+                                                newQuantity;
+                                          });
+                                        },
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.remove_circle_outline,
+                                          ),
+                                          onPressed: () =>
+                                              removeOrderItem(index),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    children: [
+                                      // 商品名
+                                      Expanded(
+                                        child: DropdownButton<String>(
+                                          value: item['productId'],
+                                          isExpanded: true,
+                                          items: products.map((doc) {
+                                            final name = doc['name'] ?? '';
+                                            return DropdownMenuItem(
+                                              value: doc.id,
+                                              child: Text(name),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              orderItems[index]['productId'] =
+                                                  value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+
+                                      // 数量入力ウィジェット（分離版）
+                                      QuantityInput(
+                                        quantity: quantity,
+                                        onChanged: (newQuantity) {
+                                          setState(() {
+                                            orderItems[index]['quantity'] =
+                                                newQuantity;
+                                          });
+                                        },
+                                      ),
+
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                        ),
+                                        onPressed: () => removeOrderItem(index),
+                                      ),
+                                    ],
+                                  ),
+                          ),
                         );
                       },
                     ),
                   ),
+
                   const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: addOrderItem,
-                    child: const Text('明細追加'),
+                  // ボタンを横並びに配置
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: ElevatedButton(
+                            onPressed: addOrderItem,
+                            child: const Text('明細追加'),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (selectedCustomerId == null ||
+                                  orderItems.isEmpty) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('顧客と明細を入力してください'),
+                                  ),
+                                );
+                                return;
+                              }
+                              try {
+                                // 注文データをordersコレクションに追加
+                                final orderRef = await FirebaseFirestore
+                                    .instance
+                                    .collection('orders')
+                                    .add({
+                                      'customerId': selectedCustomerId,
+                                      'orderDate': Timestamp.fromDate(
+                                        orderDate,
+                                      ),
+                                      'createdAt': FieldValue.serverTimestamp(),
+                                    });
+                                // 注文明細をorderItemsサブコレクションに追加
+                                final batch = FirebaseFirestore.instance
+                                    .batch();
+                                for (var item in orderItems) {
+                                  batch.set(
+                                    orderRef.collection('orderItems').doc(),
+                                    {
+                                      'productId': item['productId'],
+                                      'quantity': item['quantity'],
+                                    },
+                                  );
+                                }
+                                await batch.commit();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('注文データを保存しました')),
+                                );
+                                // 入力内容の初期化は削除
+                                // 注文一覧画面に戻る
+                                Navigator.of(context).pop();
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('保存に失敗しました: ${e.toString()}'),
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text('注文保存'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (selectedCustomerId == null || orderItems.isEmpty) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('顧客と明細を入力してください')),
-                        );
-                        return;
-                      }
-                      try {
-                        // 注文データをordersコレクションに追加
-                        final orderRef = await FirebaseFirestore.instance
-                            .collection('orders')
-                            .add({
-                              'customerId': selectedCustomerId,
-                              'orderDate': Timestamp.fromDate(orderDate),
-                              'createdAt': FieldValue.serverTimestamp(),
-                            });
-                        // 注文明細をorderItemsサブコレクションに追加
-                        final batch = FirebaseFirestore.instance.batch();
-                        for (var item in orderItems) {
-                          batch.set(orderRef.collection('orderItems').doc(), {
-                            'productId': item['productId'],
-                            'quantity': item['quantity'],
-                          });
-                        }
-                        await batch.commit();
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('注文データを保存しました')),
-                        );
-                        // 入力内容を初期化
-                        setState(() {
-                          selectedCustomerId = customers.isNotEmpty
-                              ? customers.first.id
-                              : null;
-                          orderDate = DateTime.now();
-                          orderItems = products.isNotEmpty
-                              ? [
-                                  {
-                                    'productId': products.first.id,
-                                    'quantity': 1,
-                                  },
-                                ]
-                              : [];
-                        });
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('保存に失敗しました: ${e.toString()}')),
-                        );
-                      }
-                    },
-                    child: const Text('注文追加'),
-                  ),
                 ],
               ),
             ),

@@ -78,7 +78,7 @@ class OrderListPage extends StatelessWidget {
                     customerName = customerSnap.data!.get('name') ?? customerId;
                   }
                   return ListTile(
-                    title: Text('顧客: $customerName'),
+                    title: Text(customerName),
                     subtitle: Text(
                       orderDate != null
                           ? '注文日: ${orderDate.year}/${orderDate.month}/${orderDate.day}'
