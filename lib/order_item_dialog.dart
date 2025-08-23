@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:honeysales/widgets/quantity_input.dart';
 
 Future<void> orderItemEditDialog(
   BuildContext context,
@@ -39,13 +40,11 @@ Future<void> orderItemEditDialog(
                     });
                   },
                 ),
-                TextFormField(
-                  initialValue: selectedQuantity.toString(),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: '数量'),
+                QuantityInput(
+                  quantity: selectedQuantity,
                   onChanged: (val) {
                     setState(() {
-                      selectedQuantity = int.tryParse(val) ?? quantity;
+                      selectedQuantity = val;
                     });
                   },
                 ),
@@ -125,13 +124,11 @@ Future<void> orderItemAddDialog(BuildContext context, String orderId) async {
                     });
                   },
                 ),
-                TextFormField(
-                  initialValue: selectedQuantity.toString(),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: '数量'),
+                QuantityInput(
+                  quantity: selectedQuantity,
                   onChanged: (val) {
                     setState(() {
-                      selectedQuantity = int.tryParse(val) ?? 1;
+                      selectedQuantity = val;
                     });
                   },
                 ),
