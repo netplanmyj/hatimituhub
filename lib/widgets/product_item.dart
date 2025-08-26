@@ -79,7 +79,22 @@ class _ProductItemFormState extends State<ProductItemForm> {
               onPressed: () {
                 final name = nameController.text.trim();
                 final price = int.tryParse(priceController.text.trim()) ?? 0;
-                if (name.isEmpty || selectedTypeId == null) return;
+                bool hasError = false;
+                setState(() {
+                  if (name.isEmpty) {
+                    nameError = '商品名は必須です';
+                    hasError = true;
+                  } else {
+                    nameError = null;
+                  }
+                  if (selectedTypeId == null) {
+                    typeError = '商品区分を選択してください';
+                    hasError = true;
+                  } else {
+                    typeError = null;
+                  }
+                });
+                if (hasError) return;
                 widget.onSave?.call(name, price, selectedTypeId!);
               },
               child: Text(widget.product == null ? '追加' : '更新'),
