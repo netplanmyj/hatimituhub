@@ -41,18 +41,7 @@ class ProductListPage extends StatelessWidget {
                     product: product,
                     typeLabel: typeLabel,
                     onEdit: () {
-                      // 実装例: showProductDialog(context, product: product);
-                    },
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // 実装例: showProductDialog(context);
+          showProductDialog(context);
         },
         tooltip: '商品追加',
         child: const Icon(Icons.add),
