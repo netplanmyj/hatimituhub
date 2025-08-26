@@ -23,6 +23,8 @@ class _ProductItemFormState extends State<ProductItemForm> {
   late TextEditingController nameController;
   late TextEditingController priceController;
   String? selectedTypeId;
+  String? nameError;
+  String? typeError;
 
   @override
   void initState() {
@@ -33,17 +35,18 @@ class _ProductItemFormState extends State<ProductItemForm> {
     );
     final typeId = widget.product?['type']?.toString();
     final availableTypeIds = widget.types.map((typeDoc) => typeDoc.id).toSet();
-    selectedTypeId = (typeId != null && availableTypeIds.contains(typeId)) ? typeId : null;
+    selectedTypeId = (typeId != null && availableTypeIds.contains(typeId))
+        ? typeId
+        : null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         TextField(
           controller: nameController,
-          decoration: const InputDecoration(labelText: '商品名'),
+          decoration: InputDecoration(labelText: '商品名', errorText: nameError),
         ),
         TextField(
           controller: priceController,
@@ -52,7 +55,7 @@ class _ProductItemFormState extends State<ProductItemForm> {
         ),
         DropdownButtonFormField<String>(
           initialValue: selectedTypeId,
-          decoration: const InputDecoration(labelText: '商品区分'),
+          decoration: InputDecoration(labelText: '商品区分', errorText: typeError),
           items: widget.types.map((typeDoc) {
             final typeData = typeDoc.data() as Map<String, dynamic>;
             return DropdownMenuItem<String>(
