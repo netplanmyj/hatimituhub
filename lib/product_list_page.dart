@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'widgets/product_item.dart';
+import 'widgets/product_dialog.dart';
 
 class ProductListPage extends StatelessWidget {
   const ProductListPage({super.key});
@@ -41,7 +42,18 @@ class ProductListPage extends StatelessWidget {
                     product: product,
                     typeLabel: typeLabel,
                     onEdit: () {
-          showProductDialog(context);
+                      ProductDialog.show(context, product: product);
+                    },
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ProductDialog.show(context);
         },
         tooltip: '商品追加',
         child: const Icon(Icons.add),
