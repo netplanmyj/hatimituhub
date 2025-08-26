@@ -31,7 +31,9 @@ class _ProductItemFormState extends State<ProductItemForm> {
     priceController = TextEditingController(
       text: widget.product?['price']?.toString() ?? '',
     );
-    selectedTypeId = widget.product?['type']?.toString();
+    final typeId = widget.product?['type']?.toString();
+    final availableTypeIds = widget.types.map((typeDoc) => typeDoc.id).toSet();
+    selectedTypeId = (typeId != null && availableTypeIds.contains(typeId)) ? typeId : null;
   }
 
   @override
