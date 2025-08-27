@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'order_item_dialog.dart';
+import 'package:honeysales/widgets/order_item_dialog.dart';
 
 class OrderDetailPage extends StatelessWidget {
   final String orderId;
