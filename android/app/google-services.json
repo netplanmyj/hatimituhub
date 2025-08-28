@@ -7,31 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:55242870581:android:5058927fc91d5d999c467c",
-        "android_client_info": {
-          "package_name": "com.example.honeysales"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:55242870581:android:a14a106f58ea96d09c467c",
         "android_client_info": {
           "package_name": "jp.netplan.android.honeysales"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "55242870581-e3grd5qjgppbid8f3453b5al3ehh05r9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
@@ -39,26 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:55242870581:android:1861f435cefe49bc9c467c",
-        "android_client_info": {
-          "package_name": "jp.netplan.honeysales"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "55242870581-e3grd5qjgppbid8f3453b5al3ehh05r9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "55242870581-eifj2t4buri75b0qq4sirvj96et1tdpq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.honeysales"
+              }
+            }
+          ]
         }
       }
     }

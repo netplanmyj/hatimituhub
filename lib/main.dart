@@ -6,6 +6,8 @@ import 'order_list_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_master_page.dart';
 import 'customer_master_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +25,97 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const OrderListPage(), // ← ここで注文一覧を起動時に表示
+      home: const GoogleSignInDemo(),
+    );
+  }
+}
+
+class GoogleSignInDemo extends StatefulWidget {
+  const GoogleSignInDemo({super.key});
+
+  @override
+  State<GoogleSignInDemo> createState() => _GoogleSignInDemoState();
+}
+
+class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
+  User? user;
+
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // キャンセル時
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+      setState(() {
+        user = userCredential.user;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('ログインエラー'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut();
+    setState(() {
+      user = null;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    user = FirebaseAuth.instance.currentUser;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Googleサインインデモ')),
+      body: Center(
+        child: user == null
+            ? ElevatedButton(
+                onPressed: signInWithGoogle,
+                child: const Text('Googleでログイン'),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(user!.photoURL ?? ''),
+                    radius: 40,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('ログイン中: ${user!.displayName ?? ''}'),
+                  Text('メール: ${user!.email ?? ''}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: signOut,
+                    child: const Text('ログアウト'),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
