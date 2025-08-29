@@ -32,6 +32,41 @@ class DummyOrderListPage extends StatelessWidget {
 }
 
 void main() {
+  test('ページネーションで10件ずつ取得できる', () {
+    // ダミー注文リスト（25件）
+    final allOrders = List.generate(
+      25,
+      (i) => {'id': i, 'customerName': '顧客$i'},
+    );
+    int pageSize = 10;
+    int currentPage = 0;
+    List<Map<String, dynamic>> getPage(int page) {
+      int start = page * pageSize;
+      int end = start + pageSize;
+      return allOrders.sublist(
+        start,
+        end > allOrders.length ? allOrders.length : end,
+      );
+    }
+
+    // 1ページ目
+    var page1 = getPage(0);
+    expect(page1.length, 10);
+    expect(page1.first['id'], 0);
+    expect(page1.last['id'], 9);
+
+    // 2ページ目
+    var page2 = getPage(1);
+    expect(page2.length, 10);
+    expect(page2.first['id'], 10);
+    expect(page2.last['id'], 19);
+
+    // 3ページ目（最後の5件）
+    var page3 = getPage(2);
+    expect(page3.length, 5);
+    expect(page3.first['id'], 20);
+    expect(page3.last['id'], 24);
+  });
   testWidgets('注文一覧に顧客名と注文日が表示される', (WidgetTester tester) async {
     final orders = [
       {'customerName': '山田太郎', 'orderDate': DateTime(2025, 8, 22)},
