@@ -7,6 +7,7 @@ import 'product_master_page.dart';
 import 'customer_master_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'initial_setup_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +49,20 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Googleサインインデモ')),
+      appBar: AppBar(
+        title: const Text('Googleサインインデモ'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => InitialSetupPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: user == null
             ? ElevatedButton(
