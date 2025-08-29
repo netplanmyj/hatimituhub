@@ -39,7 +39,6 @@ void main() {
       (i) => {'id': i, 'customerName': '顧客$i'},
     );
     int pageSize = 10;
-    int currentPage = 0;
     List<Map<String, dynamic>> getPage(int page) {
       int start = page * pageSize;
       int end = start + pageSize;
