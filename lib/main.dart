@@ -11,6 +11,7 @@ import 'initial_setup_page.dart';
 import 'customer_type_master_page.dart';
 import 'product_type_master_page.dart';
 import 'product_category_master_page.dart';
+import 'tax_master_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,9 +66,34 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ListTile(
+                        leading: const Icon(Icons.percent),
+                        title: const Text('税率マスタ管理'),
+                        onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TaxMasterPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      ListTile(
                         leading: const Icon(Icons.data_usage),
                         title: const Text('初期セットアップ'),
                         onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.pop(context);
                           Navigator.push(
                             context,
@@ -81,6 +107,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         leading: const Icon(Icons.category),
                         title: const Text('顧客区分管理'),
                         onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.pop(context);
                           Navigator.push(
                             context,
@@ -94,6 +126,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         leading: const Icon(Icons.label),
                         title: const Text('商品区分管理'),
                         onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.pop(context);
                           Navigator.push(
                             context,
@@ -107,6 +145,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         leading: const Icon(Icons.list),
                         title: const Text('商品種別管理'),
                         onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.pop(context);
                           Navigator.push(
                             context,
@@ -153,6 +197,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         icon: const Icon(Icons.list_alt),
                         tooltip: '注文一覧',
                         onPressed: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const OrderListPage(),
@@ -164,6 +214,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         icon: const Icon(Icons.add_shopping_cart),
                         tooltip: '注文入力',
                         onPressed: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const OrderInputPage(),
@@ -175,6 +231,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         icon: const Icon(Icons.inventory),
                         tooltip: '商品管理',
                         onPressed: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const ProductMasterPage(),
@@ -186,6 +248,12 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         icon: const Icon(Icons.people),
                         tooltip: '顧客管理',
                         onPressed: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ログインが必要です')),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const CustomerMasterPage(),
