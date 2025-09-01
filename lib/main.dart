@@ -10,6 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'initial_setup_page.dart';
 import 'customer_type_master_page.dart';
 import 'product_type_master_page.dart';
+import 'product_category_master_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,6 +99,19 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProductTypeMasterPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.list),
+                        title: const Text('商品種別管理'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductCategoryMasterPage(),
                             ),
                           );
                         },
