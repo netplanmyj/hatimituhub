@@ -26,7 +26,7 @@ class _CustomerTypeMasterPageState extends State<CustomerTypeMasterPage> {
         .collection('team_data')
         .doc(teamId)
         .collection('customer_types')
-        .orderBy('createdAt')
+        .orderBy('displayOrder')
         .get();
     setState(() {
       customerTypes = snapshot.docs;
@@ -51,11 +51,25 @@ class _CustomerTypeMasterPageState extends State<CustomerTypeMasterPage> {
       ).showSnackBar(const SnackBar(content: Text('同じ区分名は登録できません')));
       return;
     }
+    // displayOrderの最大値+1をセット
+    final all = await FirebaseFirestore.instance
+        .collection('team_data')
+        .doc(teamId)
+        .collection('customer_types')
+        .orderBy('displayOrder', descending: true)
+        .limit(1)
+        .get();
+    final nextOrder =
+        (all.docs.isNotEmpty ? (all.docs.first['displayOrder'] ?? 0) : 0) + 1;
     await FirebaseFirestore.instance
         .collection('team_data')
         .doc(teamId)
         .collection('customer_types')
-        .add({'name': name, 'createdAt': Timestamp.now()});
+        .add({
+          'name': name,
+          'displayOrder': nextOrder,
+          'createdAt': Timestamp.now(),
+        });
     _controller.clear();
     await fetchCustomerTypes();
   }

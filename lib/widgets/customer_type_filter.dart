@@ -25,7 +25,7 @@ class CustomerTypeFilter extends StatelessWidget {
             const DropdownMenuItem(value: '', child: Text('すべて')),
             ...customerTypes.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
-              final label = data['typeLabel'] ?? doc.id;
+              final label = data['name'] ?? doc.id;
               return DropdownMenuItem(value: doc.id, child: Text(label));
             }),
           ],

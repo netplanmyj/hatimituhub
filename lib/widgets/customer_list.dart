@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'customer_item.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomerList extends StatelessWidget {
   final List<DocumentSnapshot> customerTypes;
@@ -16,8 +17,11 @@ class CustomerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final teamId = FirebaseAuth.instance.currentUser?.uid;
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
+          .collection('team_data')
+          .doc(teamId)
           .collection('customers')
           .orderBy('createdAt', descending: true)
           .snapshots(),
@@ -44,7 +48,7 @@ class CustomerList extends StatelessWidget {
                   (doc) => doc.id == data['customer_type'],
                 );
                 final typeData = typeDoc.data() as Map<String, dynamic>;
-                typeLabel = typeData['typeLabel'] ?? '';
+                typeLabel = typeData['name'] ?? '';
               } catch (e) {
                 typeLabel = '';
               }

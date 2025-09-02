@@ -5,7 +5,7 @@ class CustomerDialog extends StatefulWidget {
   final List<DocumentSnapshot> customerTypes;
   final DocumentSnapshot? customer;
   final String initialCustomerType;
-  final void Function(
+  final Function(
     String name,
     String tel,
     String customerType,
@@ -13,14 +13,14 @@ class CustomerDialog extends StatefulWidget {
     String kana,
   )
   onSave;
-  final void Function()? onDelete;
+  final Future<void> Function()? onDelete;
 
   const CustomerDialog({
     super.key,
     required this.customerTypes,
+    required this.customer,
     required this.initialCustomerType,
     required this.onSave,
-    this.customer,
     this.onDelete,
   });
 
@@ -30,86 +30,84 @@ class CustomerDialog extends StatefulWidget {
 
 class _CustomerDialogState extends State<CustomerDialog> {
   late TextEditingController nameController;
-  late TextEditingController telController;
-  late TextEditingController address1Controller;
   late TextEditingController kanaController;
+  late TextEditingController address1Controller;
+  late TextEditingController telController;
   late String dialogCustomerType;
 
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(
-      text: widget.customer?['name'] ?? '',
-    );
-    telController = TextEditingController(
-      text:
-          (widget.customer?.data() as Map<String, dynamic>?)?['tel']
-              ?.toString() ??
-          '',
+    final data = widget.customer?.data() as Map<String, dynamic>? ?? {};
+    nameController = TextEditingController(text: data['name'] ?? '');
+    kanaController = TextEditingController(
+      text: data['kana']?.toString() ?? '',
     );
     address1Controller = TextEditingController(
-      text:
-          (widget.customer?.data() as Map<String, dynamic>?)?['address1']
-              ?.toString() ??
-          '',
+      text: data['address1']?.toString() ?? '',
     );
-    kanaController = TextEditingController(
-      text:
-          (widget.customer?.data() as Map<String, dynamic>?)?['kana']
-              ?.toString() ??
-          '',
-    );
-    dialogCustomerType =
-        widget.customer?['customer_type'] ?? widget.initialCustomerType;
+    telController = TextEditingController(text: data['tel']?.toString() ?? '');
+    dialogCustomerType = data['customer_type'] ?? widget.initialCustomerType;
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    kanaController.dispose();
+    address1Controller.dispose();
+    telController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final dropdownItems = widget.customerTypes.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final label = data['typeLabel'] ?? doc.id;
-      return DropdownMenuItem(value: doc.id, child: Text(label));
-    }).toList();
-    final validValues = dropdownItems.map((item) => item.value).toList();
-    final dropdownValue =
-        validValues.contains(dialogCustomerType) &&
-            dialogCustomerType.isNotEmpty
-        ? dialogCustomerType
-        : null;
-
+    final sortedTypes = [...widget.customerTypes];
+    sortedTypes.sort((a, b) {
+      final aOrder = (a.data() as Map<String, dynamic>)['displayOrder'] ?? 0;
+      final bOrder = (b.data() as Map<String, dynamic>)['displayOrder'] ?? 0;
+      return aOrder.compareTo(bOrder);
+    });
     return AlertDialog(
       title: Text(widget.customer == null ? '顧客追加' : '顧客編集'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nameController,
-            decoration: const InputDecoration(labelText: '顧客名'),
-          ),
-          TextField(
-            controller: kanaController,
-            decoration: const InputDecoration(labelText: 'フリガナ'),
-          ),
-          TextField(
-            controller: address1Controller,
-            decoration: const InputDecoration(labelText: '住所1'),
-          ),
-          TextField(
-            controller: telController,
-            decoration: const InputDecoration(labelText: '電話番号'),
-            keyboardType: TextInputType.phone,
-          ),
-          DropdownButton<String>(
-            value: dropdownValue,
-            items: dropdownItems,
-            hint: const Text('区分を選択'),
-            onChanged: (value) {
-              setState(() {
-                dialogCustomerType = value ?? widget.initialCustomerType;
-              });
-            },
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: '顧客名'),
+            ),
+            TextField(
+              controller: kanaController,
+              decoration: const InputDecoration(labelText: 'フリガナ'),
+            ),
+            TextField(
+              controller: address1Controller,
+              decoration: const InputDecoration(labelText: '住所1'),
+            ),
+            TextField(
+              controller: telController,
+              decoration: const InputDecoration(labelText: '電話番号'),
+              keyboardType: TextInputType.phone,
+            ),
+            DropdownButton<String>(
+              value: dialogCustomerType.isEmpty ? null : dialogCustomerType,
+              items: [
+                ...sortedTypes.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final label = data['name'] ?? doc.id;
+                  return DropdownMenuItem(value: doc.id, child: Text(label));
+                }),
+              ],
+              hint: const Text('区分を選択'),
+              onChanged: (value) {
+                setState(() {
+                  dialogCustomerType = value ?? '';
+                });
+              },
+            ),
+          ],
+        ),
       ),
       actions: [
         if (widget.onDelete != null)
