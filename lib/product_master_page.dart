@@ -1,16 +1,23 @@
 import 'widgets/product_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProductMasterPage extends StatelessWidget {
   const ProductMasterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final teamId = user?.uid ?? 'unknown_team';
     return Scaffold(
       appBar: AppBar(title: const Text('商品管理')),
       body: FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance.collection('product_types').get(),
+        future: FirebaseFirestore.instance
+            .collection('team_data')
+            .doc(teamId)
+            .collection('product_types')
+            .get(),
         builder: (context, typeSnapshot) {
           if (!typeSnapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -22,6 +29,8 @@ class ProductMasterPage extends StatelessWidget {
           };
           return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
+                .collection('team_data')
+                .doc(teamId)
                 .collection('products')
                 .orderBy('createdAt', descending: true)
                 .snapshots(),

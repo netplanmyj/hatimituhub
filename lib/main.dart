@@ -35,13 +35,32 @@ class MyApp extends StatelessWidget {
 }
 
 class GoogleSignInDemo extends StatefulWidget {
-  const GoogleSignInDemo({super.key});
+  final User? testUser;
+  const GoogleSignInDemo({super.key, this.testUser});
 
   @override
   State<GoogleSignInDemo> createState() => _GoogleSignInDemoState();
 }
 
 class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
+  User? user;
+
+  void showLoginRequiredSnackBar(BuildContext context, User? user) {
+    if (user == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ログインが必要です')));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.testUser != null) {
+      user = widget.testUser;
+    }
+  }
+
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
     await GoogleSignIn().signOut();
@@ -70,9 +89,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         title: const Text('税率マスタ管理'),
                         onTap: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.pop(context);
@@ -89,9 +106,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         title: const Text('初期セットアップ'),
                         onTap: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.pop(context);
@@ -108,9 +123,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         title: const Text('顧客区分管理'),
                         onTap: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.pop(context);
@@ -127,9 +140,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         title: const Text('商品区分管理'),
                         onTap: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.pop(context);
@@ -146,9 +157,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         title: const Text('商品種別管理'),
                         onTap: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.pop(context);
@@ -178,8 +187,14 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircleAvatar(
-                    backgroundImage: NetworkImage(user!.photoURL ?? ''),
+                    backgroundImage:
+                        (user!.photoURL != null && user!.photoURL!.isNotEmpty)
+                        ? NetworkImage(user!.photoURL!)
+                        : null,
                     radius: 40,
+                    child: (user!.photoURL == null || user!.photoURL!.isEmpty)
+                        ? const Icon(Icons.person, size: 40)
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   Text('ログイン中: ${user!.displayName ?? ''}'),
@@ -198,9 +213,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         tooltip: '注文一覧',
                         onPressed: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.of(context).push(
@@ -215,9 +228,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         tooltip: '注文入力',
                         onPressed: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.of(context).push(
@@ -232,9 +243,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         tooltip: '商品管理',
                         onPressed: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.of(context).push(
@@ -249,9 +258,7 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
                         tooltip: '顧客管理',
                         onPressed: () {
                           if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ログインが必要です')),
-                            );
+                            showLoginRequiredSnackBar(context, user);
                             return;
                           }
                           Navigator.of(context).push(
@@ -268,8 +275,6 @@ class _GoogleSignInDemoState extends State<GoogleSignInDemo> {
       ),
     );
   }
-
-  User? user;
 
   Future<void> signInWithGoogle() async {
     try {
