@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'widgets/customer_type_filter.dart';
 import 'widgets/customer_dialog.dart';
 import 'widgets/customer_list.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomerMasterPage extends StatefulWidget {
   const CustomerMasterPage({super.key});
@@ -22,7 +23,11 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
   }
 
   Future<void> fetchCustomerTypes() async {
+    final teamId = FirebaseAuth.instance.currentUser?.uid;
+    if (teamId == null) return;
     final snap = await FirebaseFirestore.instance
+        .collection('team_data')
+        .doc(teamId)
         .collection('customer_types')
         .get();
     setState(() {
@@ -32,6 +37,7 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
   }
 
   void showCustomerDialog(BuildContext context, {DocumentSnapshot? customer}) {
+    final teamId = FirebaseAuth.instance.currentUser?.uid;
     showDialog(
       context: context,
       builder: (context) {
@@ -50,16 +56,22 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
               return;
             }
             if (customer == null) {
-              await FirebaseFirestore.instance.collection('customers').add({
-                'name': name,
-                'tel': tel,
-                'customer_type': customerType,
-                'address1': address1,
-                'kana': kana,
-                'createdAt': FieldValue.serverTimestamp(),
-              });
+              await FirebaseFirestore.instance
+                  .collection('team_data')
+                  .doc(teamId)
+                  .collection('customers')
+                  .add({
+                    'name': name,
+                    'tel': tel,
+                    'customer_type': customerType,
+                    'address1': address1,
+                    'kana': kana,
+                    'createdAt': FieldValue.serverTimestamp(),
+                  });
             } else {
               await FirebaseFirestore.instance
+                  .collection('team_data')
+                  .doc(teamId)
                   .collection('customers')
                   .doc(customer.id)
                   .update({
@@ -97,6 +109,8 @@ class _CustomerMasterPageState extends State<CustomerMasterPage> {
                   if (!context.mounted) return;
                   if (confirm == true) {
                     await FirebaseFirestore.instance
+                        .collection('team_data')
+                        .doc(teamId)
                         .collection('customers')
                         .doc(customer.id)
                         .delete();

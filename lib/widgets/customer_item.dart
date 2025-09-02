@@ -19,9 +19,10 @@ class CustomerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = customer['name'] ?? '';
-    final address1 = customer['address1'] ?? '';
-    final tel = customer['tel'] ?? '';
+    final data = customer.data() as Map<String, dynamic>? ?? {};
+    final name = data['name'] ?? '';
+    final address1 = data['address1'] ?? '';
+    final tel = data['tel'] ?? '';
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: ListTile(
