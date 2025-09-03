@@ -18,7 +18,9 @@ class MockUser implements User {
 
 void main() {
   testWidgets('未ログイン状態では各ボタンが表示されない', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HoneysalesHome()));
+    await tester.pumpWidget(
+      const MaterialApp(home: HoneysalesHome(testUser: null)),
+    );
     expect(find.byIcon(Icons.inventory), findsNothing);
     expect(find.byIcon(Icons.list_alt), findsNothing);
     expect(find.byIcon(Icons.add_shopping_cart), findsNothing);

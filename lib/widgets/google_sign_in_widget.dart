@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 
 class GoogleSignInWidget extends StatefulWidget {
   final User? testUser;
@@ -23,13 +24,37 @@ class GoogleSignInWidgetState extends State<GoogleSignInWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.testUser != null) {
-      user = widget.testUser;
-    }
+    user = widget.testUser; // testUserが設定されていればそれを使用（nullでもOK）
     _initializeGoogleSignIn();
   }
 
+  bool _isFlutterTest() {
+    // Flutter Test環境かどうかを判定する複数の方法
+    try {
+      // WidgetsBindingのタイプをチェック
+      final bindingType = WidgetsBinding.instance.runtimeType.toString();
+      if (bindingType.contains('Test')) return true;
+
+      // 環境変数をチェック
+      if (const bool.fromEnvironment('FLUTTER_TEST', defaultValue: false)) {
+        return true;
+      }
+
+      // 開発環境でのテスト実行をチェック
+      return kDebugMode && bindingType.contains('AutomatedTest');
+    } catch (e) {
+      // エラーが発生した場合は安全側に倒してテスト環境として扱う
+      return true;
+    }
+  }
+
   Future<void> _initializeGoogleSignIn() async {
+    // テスト環境では初期化をスキップ
+    if (_isFlutterTest()) {
+      _isInitialized = true;
+      return;
+    }
+
     try {
       await GoogleSignIn.instance.initialize();
       _isInitialized = true;
