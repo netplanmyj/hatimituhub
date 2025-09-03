@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/firestore_service.dart';
 import 'customer_master_page.dart';
 import 'order_detail_page.dart';
 import 'order_input.dart';
@@ -30,8 +31,17 @@ class _OrderListPageState extends State<OrderListPage> {
     setState(() {
       isLoading = true;
     });
-    Query query = FirebaseFirestore.instance
-        .collection('orders')
+
+    final ordersCollection = FirestoreService.orders;
+    if (ordersCollection == null) {
+      setState(() {
+        isLoading = false;
+        hasMore = false;
+      });
+      return;
+    }
+
+    Query query = ordersCollection
         .orderBy('createdAt', descending: true)
         .limit(pageSize);
     if (!reset && lastDocument != null) {
@@ -61,8 +71,10 @@ class _OrderListPageState extends State<OrderListPage> {
     if (currentPage > 0 && !isLoading) {
       // 前ページの最後のドキュメントを取得
       int prevPage = currentPage - 1;
-      Query query = FirebaseFirestore.instance
-          .collection('orders')
+      final ordersCollection = FirestoreService.orders;
+      if (ordersCollection == null) return;
+
+      Query query = ordersCollection
           .orderBy('createdAt', descending: true)
           .limit(pageSize);
       if (prevPage > 0 && orders.isNotEmpty) {
@@ -127,14 +139,17 @@ class _OrderListPageState extends State<OrderListPage> {
                       final customerId = data['customerId'] ?? '';
                       final orderDate = (data['orderDate'] as Timestamp?)
                           ?.toDate();
-                      return FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('customers')
-                            .doc(customerId)
-                            .get(),
+                      return FutureBuilder<DocumentSnapshot?>(
+                        future: customerId.isNotEmpty
+                            ? FirestoreService.getDocumentSafely(
+                                'customers',
+                                customerId,
+                              )
+                            : Future.value(null),
                         builder: (context, customerSnap) {
                           String customerName = customerId;
                           if (customerSnap.hasData &&
+                              customerSnap.data != null &&
                               customerSnap.data!.exists) {
                             customerName =
                                 customerSnap.data!.get('name') ?? customerId;

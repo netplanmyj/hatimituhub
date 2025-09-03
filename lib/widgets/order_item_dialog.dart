@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/firestore_service.dart';
 import 'package:honeysales/widgets/product_selector.dart';
 
 class OrderItemDialog extends StatefulWidget {
@@ -147,12 +148,13 @@ Future<void> orderItemEditDialog(
 }
 
 Future<void> orderItemAddDialog(BuildContext context, String orderId) async {
-  final productsSnap = await FirebaseFirestore.instance
-      .collection('products')
-      .get();
-  final productTypesSnap = await FirebaseFirestore.instance
-      .collection('product_types')
-      .get();
+  final productsSnap = await FirestoreService.getCollectionSafely('products');
+  final productTypesSnap = await FirestoreService.getCollectionSafely(
+    'product_types',
+  );
+
+  if (productsSnap == null || productTypesSnap == null) return;
+
   final products = productsSnap.docs;
   final productTypes = productTypesSnap.docs;
   if (products.isEmpty || !context.mounted) return;
@@ -168,14 +170,13 @@ Future<void> orderItemAddDialog(BuildContext context, String orderId) async {
         initialQuantity: 1,
         title: '明細追加',
         onSave: (selectedProductId, selectedQuantity, selectedTypeId) async {
-          await FirebaseFirestore.instance
-              .collection('orders')
-              .doc(orderId)
-              .collection('orderItems')
-              .add({
-                'productId': selectedProductId,
-                'quantity': selectedQuantity,
-              });
+          final orderItemsRef = FirestoreService.getOrderItems(orderId);
+          if (orderItemsRef != null) {
+            await orderItemsRef.add({
+              'productId': selectedProductId,
+              'quantity': selectedQuantity,
+            });
+          }
         },
       );
     },
