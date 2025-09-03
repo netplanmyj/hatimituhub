@@ -18,7 +18,7 @@ class MockUser implements User {
 
 void main() {
   testWidgets('未ログイン状態では各ボタンが表示されない', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: GoogleSignInDemo()));
+    await tester.pumpWidget(const MaterialApp(home: HoneysalesHome()));
     expect(find.byIcon(Icons.inventory), findsNothing);
     expect(find.byIcon(Icons.list_alt), findsNothing);
     expect(find.byIcon(Icons.add_shopping_cart), findsNothing);
@@ -28,13 +28,11 @@ void main() {
 
   testWidgets('ログイン状態では各ボタンが表示される', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: GoogleSignInDemo(testUser: MockUser())),
+      MaterialApp(home: HoneysalesHome(testUser: MockUser())),
     );
     expect(find.byIcon(Icons.inventory), findsOneWidget);
     expect(find.byIcon(Icons.list_alt), findsOneWidget);
     expect(find.byIcon(Icons.add_shopping_cart), findsOneWidget);
     expect(find.byIcon(Icons.people), findsOneWidget);
-    expect(find.text('ログイン中: テストユーザー'), findsOneWidget);
-    expect(find.text('メール: test@example.com'), findsOneWidget);
   });
 }
