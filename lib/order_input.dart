@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/firestore_service.dart';
 import 'widgets/product_selector.dart';
 
 class OrderInputPage extends StatefulWidget {
@@ -24,15 +25,21 @@ class _OrderInputPageState extends State<OrderInputPage> {
   }
 
   Future<void> fetchInitialData() async {
-    final customerSnap = await FirebaseFirestore.instance
-        .collection('customers')
-        .get();
-    final productSnap = await FirebaseFirestore.instance
-        .collection('products')
-        .get();
-    final productTypeSnap = await FirebaseFirestore.instance
-        .collection('product_types')
-        .get();
+    final customerSnap = await FirestoreService.getCollectionSafely(
+      'customers',
+    );
+    final productSnap = await FirestoreService.getCollectionSafely('products');
+    final productTypeSnap = await FirestoreService.getCollectionSafely(
+      'product_types',
+    );
+
+    if (customerSnap == null ||
+        productSnap == null ||
+        productTypeSnap == null) {
+      // 認証エラーまたは取得エラー
+      return;
+    }
+
     setState(() {
       customers = customerSnap.docs;
       products = productSnap.docs;
@@ -188,16 +195,24 @@ class _OrderInputPageState extends State<OrderInputPage> {
                                 return;
                               }
                               try {
-                                final orderRef = await FirebaseFirestore
-                                    .instance
-                                    .collection('orders')
-                                    .add({
-                                      'customerId': selectedCustomerId,
-                                      'orderDate': Timestamp.fromDate(
-                                        orderDate,
-                                      ),
-                                      'createdAt': FieldValue.serverTimestamp(),
-                                    });
+                                final ordersCollection =
+                                    FirestoreService.orders;
+                                if (ordersCollection == null) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('認証エラーが発生しました'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final orderRef = await ordersCollection.add({
+                                  'customerId': selectedCustomerId,
+                                  'orderDate': Timestamp.fromDate(orderDate),
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
+
                                 final batch = FirebaseFirestore.instance
                                     .batch();
                                 for (var item in orderItems) {

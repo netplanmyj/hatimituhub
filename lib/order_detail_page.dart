@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/firestore_service.dart';
 import 'package:honeysales/widgets/order_item_dialog.dart';
 
 class OrderDetailPage extends StatelessWidget {
@@ -10,16 +11,15 @@ class OrderDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('注文内容')),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('orders')
-            .doc(orderId)
-            .get(),
+      body: FutureBuilder<DocumentSnapshot?>(
+        future: FirestoreService.getDocumentSafely('orders', orderId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
+          if (!snapshot.hasData ||
+              snapshot.data == null ||
+              !snapshot.data!.exists) {
             return const Center(child: Text('注文データがありません'));
           }
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -37,14 +37,15 @@ class OrderDetailPage extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .collection('customers')
-                              .doc(customerId)
-                              .get(),
+                        FutureBuilder<DocumentSnapshot?>(
+                          future: FirestoreService.getDocumentSafely(
+                            'customers',
+                            customerId,
+                          ),
                           builder: (context, customerSnap) {
                             String customerName = customerId;
                             if (customerSnap.hasData &&
+                                customerSnap.data != null &&
                                 customerSnap.data!.exists) {
                               customerName =
                                   customerSnap.data!.get('name') ?? customerId;
@@ -86,11 +87,16 @@ class OrderDetailPage extends StatelessWidget {
                           ),
                         );
                         if (confirmed == true) {
-                          await FirebaseFirestore.instance
-                              .collection('orders')
-                              .doc(orderId)
-                              .delete();
-                          if (context.mounted) Navigator.of(context).pop();
+                          final orderDoc = FirestoreService.getTeamDocument(
+                            'orders',
+                            orderId,
+                          );
+                          if (orderDoc != null) {
+                            await orderDoc.delete();
+                          }
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
                         }
                       },
                     ),
@@ -109,11 +115,9 @@ class OrderDetailPage extends StatelessWidget {
                 ),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('orders')
-                        .doc(orderId)
-                        .collection('orderItems')
-                        .snapshots(),
+                    stream: FirestoreService.getOrderItems(
+                      orderId,
+                    )?.snapshots(),
                     builder: (context, itemSnapshot) {
                       if (itemSnapshot.connectionState ==
                           ConnectionState.waiting) {
@@ -131,15 +135,17 @@ class OrderDetailPage extends StatelessWidget {
                               items[idx].data() as Map<String, dynamic>;
                           final productId = item['productId'] ?? '';
                           final quantity = item['quantity'] ?? 0;
-                          return FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('products')
-                                .doc(productId)
-                                .get(),
+                          return FutureBuilder<DocumentSnapshot?>(
+                            future: FirestoreService.getDocumentSafely(
+                              'products',
+                              productId,
+                            ),
                             builder: (context, prodSnap) {
                               String productName = productId;
                               int price = 0;
-                              if (prodSnap.hasData && prodSnap.data!.exists) {
+                              if (prodSnap.hasData &&
+                                  prodSnap.data != null &&
+                                  prodSnap.data!.exists) {
                                 final prodData =
                                     prodSnap.data!.data()
                                         as Map<String, dynamic>;
