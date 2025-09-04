@@ -51,10 +51,28 @@ class FirestoreService {
   static CollectionReference? get productCategories =>
       getTeamCollection('product_categories');
 
+  /// 請求者コレクションを取得
+  static CollectionReference? get claimant => getTeamCollection('claimant');
+
   /// 特定の注文の明細コレクションを取得
   static CollectionReference? getOrderItems(String orderId) {
     final orderDoc = getTeamDocument('orders', orderId);
     return orderDoc?.collection('orderItems');
+  }
+
+  /// 請求者情報を取得
+  static Future<DocumentSnapshot?> getClaimantInfo() async {
+    try {
+      final claimantCollection = getTeamCollection('claimant');
+      if (claimantCollection == null) return null;
+
+      final querySnapshot = await claimantCollection.limit(1).get();
+      if (querySnapshot.docs.isEmpty) return null;
+
+      return querySnapshot.docs.first;
+    } catch (e) {
+      return null;
+    }
   }
 
   /// 認証チェック付きでコレクションを取得
