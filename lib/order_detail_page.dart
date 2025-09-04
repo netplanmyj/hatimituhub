@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'services/firestore_service.dart';
+import 'services/invoice_service.dart';
 import 'package:honeysales/widgets/order_item_dialog.dart';
 
 class OrderDetailPage extends StatelessWidget {
@@ -10,7 +11,16 @@ class OrderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('注文内容')),
+      appBar: AppBar(
+        title: const Text('注文内容'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () => _generateInvoicePdf(context),
+            tooltip: '請求書PDF作成',
+          ),
+        ],
+      ),
       body: FutureBuilder<DocumentSnapshot?>(
         future: FirestoreService.getDocumentSafely('orders', orderId),
         builder: (context, snapshot) {
@@ -220,5 +230,42 @@ class OrderDetailPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// 請求書PDF生成
+  Future<void> _generateInvoicePdf(BuildContext context) async {
+    // 早期に必要な値を保存
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      // ローディング表示
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // PDF生成・表示
+      final success = await InvoiceService.generateAndPrintInvoice(orderId);
+
+      // ローディング非表示
+      navigator.pop();
+
+      if (!success) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('請求書の生成に失敗しました。請求者情報が登録されているか確認してください。'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // ローディング非表示
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text('エラーが発生しました: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 }

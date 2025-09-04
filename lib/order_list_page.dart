@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'services/firestore_service.dart';
+import 'services/invoice_service.dart';
 import 'customer_master_page.dart';
 import 'order_detail_page.dart';
 import 'order_input.dart';
@@ -161,7 +162,18 @@ class _OrderListPageState extends State<OrderListPage> {
                                   ? '注文日: ${orderDate.year}/${orderDate.month}/${orderDate.day}'
                                   : '',
                             ),
-                            trailing: const Icon(Icons.chevron_right),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.picture_as_pdf),
+                                  onPressed: () =>
+                                      _generateInvoicePdf(context, order.id),
+                                  tooltip: 'PDF作成',
+                                ),
+                                const Icon(Icons.chevron_right),
+                              ],
+                            ),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -193,5 +205,43 @@ class _OrderListPageState extends State<OrderListPage> {
               ],
             ),
     );
+  }
+
+  /// 請求書PDF生成
+  Future<void> _generateInvoicePdf(BuildContext context, String orderId) async {
+    // 早期に必要な値を保存
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      // ローディング表示
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // PDF生成・表示
+      final success = await InvoiceService.generateAndPrintInvoice(orderId);
+
+      // ローディング非表示
+      navigator.pop();
+
+      if (!success) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('請求書の生成に失敗しました。\n設定メニューから請求者情報を登録してください。'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      // ローディング非表示
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text('エラーが発生しました: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 }

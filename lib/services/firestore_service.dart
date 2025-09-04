@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -60,17 +61,31 @@ class FirestoreService {
     return orderDoc?.collection('orderItems');
   }
 
-  /// 請求者情報を取得
+  /// 請求者情報を取得（デバッグ情報付き）
   static Future<DocumentSnapshot?> getClaimantInfo() async {
     try {
+      debugPrint('請求者情報取得: コレクション取得開始');
       final claimantCollection = getTeamCollection('claimant');
-      if (claimantCollection == null) return null;
+      if (claimantCollection == null) {
+        debugPrint('請求者情報取得: claimantCollectionがnull');
+        return null;
+      }
 
+      debugPrint('請求者情報取得: クエリ実行開始');
       final querySnapshot = await claimantCollection.limit(1).get();
-      if (querySnapshot.docs.isEmpty) return null;
+      debugPrint('請求者情報取得: ドキュメント数 = ${querySnapshot.docs.length}');
 
-      return querySnapshot.docs.first;
+      if (querySnapshot.docs.isEmpty) {
+        debugPrint('請求者情報取得: ドキュメントが存在しません');
+        return null;
+      }
+
+      final doc = querySnapshot.docs.first;
+      debugPrint('請求者情報取得: 成功 - docId = ${doc.id}');
+      debugPrint('請求者情報取得: データ = ${doc.data()}');
+      return doc;
     } catch (e) {
+      debugPrint('請求者情報取得: エラー = $e');
       return null;
     }
   }
