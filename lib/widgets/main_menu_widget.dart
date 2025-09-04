@@ -9,6 +9,7 @@ import '../customer_type_master_page.dart';
 import '../product_type_master_page.dart';
 import '../product_category_master_page.dart';
 import '../tax_master_page.dart';
+import '../claimant_master_page.dart';
 
 class MainMenuWidget extends StatelessWidget {
   final User? user;
@@ -35,12 +36,14 @@ class MainMenuWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Googleサインインデモ'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => _showSettingsMenu(context),
-          ),
-        ],
+        actions: user != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () => _showSettingsMenu(context),
+                ),
+              ]
+            : null,
       ),
       body: Center(
         child: user == null
@@ -109,12 +112,23 @@ class MainMenuWidget extends StatelessWidget {
   }
 
   void _showSettingsMenu(BuildContext context) {
+    if (user == null) {
+      showLoginRequiredSnackBar(context);
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            _buildSettingsItem(
+              context,
+              icon: Icons.receipt_long,
+              title: '請求者情報管理',
+              page: const ClaimantMasterPage(),
+            ),
             _buildSettingsItem(
               context,
               icon: Icons.percent,
