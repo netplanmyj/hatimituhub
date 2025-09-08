@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductItemForm extends StatefulWidget {
-  final DocumentSnapshot? product;
-  final List<QueryDocumentSnapshot> types;
+  final dynamic product;
+  final List<dynamic> types;
   final void Function(String name, int price, String typeId)? onSave;
   final void Function()? onDelete;
 
@@ -29,12 +29,17 @@ class _ProductItemFormState extends State<ProductItemForm> {
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: widget.product?['name'] ?? '');
+    final productData = widget.product is Map
+        ? widget.product as Map<String, dynamic>
+        : (widget.product?.data() as Map<String, dynamic>? ?? {});
+    nameController = TextEditingController(text: productData['name'] ?? '');
     priceController = TextEditingController(
-      text: widget.product?['price']?.toString() ?? '',
+      text: productData['price']?.toString() ?? '',
     );
-    final typeId = widget.product?['type']?.toString();
-    final availableTypeIds = widget.types.map((typeDoc) => typeDoc.id).toSet();
+    final typeId = productData['type']?.toString();
+    final availableTypeIds = widget.types
+        .map((typeDoc) => typeDoc is Map ? typeDoc['id'] : typeDoc.id)
+        .toSet();
     selectedTypeId = (typeId != null && availableTypeIds.contains(typeId))
         ? typeId
         : null;
@@ -57,10 +62,13 @@ class _ProductItemFormState extends State<ProductItemForm> {
           initialValue: selectedTypeId,
           decoration: InputDecoration(labelText: '商品区分', errorText: typeError),
           items: widget.types.map((typeDoc) {
-            final typeData = typeDoc.data() as Map<String, dynamic>;
+            final typeData = typeDoc is Map
+                ? typeDoc
+                : typeDoc.data() as Map<String, dynamic>;
+            final id = typeDoc is Map ? typeDoc['id'] : typeDoc.id;
             return DropdownMenuItem<String>(
-              value: typeDoc.id,
-              child: Text(typeData['name'] ?? typeDoc.id),
+              value: id,
+              child: Text(typeData['name'] ?? id),
             );
           }).toList(),
           onChanged: (value) {
@@ -73,11 +81,6 @@ class _ProductItemFormState extends State<ProductItemForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (widget.product != null && widget.onDelete != null)
-              TextButton(
-                onPressed: widget.onDelete,
-                child: const Text('削除', style: TextStyle(color: Colors.red)),
-              ),
             TextButton(
               onPressed: () {
                 final name = nameController.text.trim();

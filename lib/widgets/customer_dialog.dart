@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerDialog extends StatefulWidget {
-  final List<DocumentSnapshot> customerTypes;
-  final DocumentSnapshot? customer;
+  final List<dynamic> customerTypes;
+  final dynamic customer;
   final String initialCustomerType;
   final Function(
     String name,
@@ -38,7 +37,9 @@ class _CustomerDialogState extends State<CustomerDialog> {
   @override
   void initState() {
     super.initState();
-    final data = widget.customer?.data() as Map<String, dynamic>? ?? {};
+    final data = widget.customer is Map
+        ? widget.customer as Map<String, dynamic>
+        : (widget.customer?.data() as Map<String, dynamic>? ?? {});
     nameController = TextEditingController(text: data['name'] ?? '');
     kanaController = TextEditingController(
       text: data['kana']?.toString() ?? '',
@@ -63,8 +64,10 @@ class _CustomerDialogState extends State<CustomerDialog> {
   Widget build(BuildContext context) {
     final sortedTypes = [...widget.customerTypes];
     sortedTypes.sort((a, b) {
-      final aOrder = (a.data() as Map<String, dynamic>)['displayOrder'] ?? 0;
-      final bOrder = (b.data() as Map<String, dynamic>)['displayOrder'] ?? 0;
+      final aData = a is Map ? a : a.data() as Map<String, dynamic>;
+      final bData = b is Map ? b : b.data() as Map<String, dynamic>;
+      final aOrder = aData['displayOrder'] ?? 0;
+      final bOrder = bData['displayOrder'] ?? 0;
       return aOrder.compareTo(bOrder);
     });
     return AlertDialog(
@@ -94,9 +97,12 @@ class _CustomerDialogState extends State<CustomerDialog> {
               value: dialogCustomerType.isEmpty ? null : dialogCustomerType,
               items: [
                 ...sortedTypes.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final label = data['name'] ?? doc.id;
-                  return DropdownMenuItem(value: doc.id, child: Text(label));
+                  final data = doc is Map
+                      ? doc
+                      : doc.data() as Map<String, dynamic>;
+                  final id = doc is Map ? doc['id'] : doc.id;
+                  final label = data['name'] ?? id;
+                  return DropdownMenuItem(value: id, child: Text(label));
                 }),
               ],
               hint: const Text('区分を選択'),

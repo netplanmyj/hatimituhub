@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerTypeFilter extends StatelessWidget {
-  final List<DocumentSnapshot> customerTypes;
+  final List<dynamic> customerTypes;
   final String selectedCustomerType;
   final ValueChanged<String> onChanged;
 
@@ -23,10 +22,12 @@ class CustomerTypeFilter extends StatelessWidget {
           hint: const Text('すべて'),
           items: [
             const DropdownMenuItem(value: '', child: Text('すべて')),
-            ...customerTypes.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
-              final label = data['name'] ?? doc.id;
-              return DropdownMenuItem(value: doc.id, child: Text(label));
+            ...customerTypes.map((typeDoc) {
+              final typeName = typeDoc['name'] ?? typeDoc.id;
+              final id =
+                  (typeDoc is Map ? typeDoc['id'] : typeDoc.id)?.toString() ??
+                  '';
+              return DropdownMenuItem<String>(value: id, child: Text(typeName));
             }),
           ],
           onChanged: (value) {

@@ -2,12 +2,32 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../models/invoice_data.dart';
 import 'invoice_template.dart';
 import 'firestore_service.dart';
 
 class InvoiceService {
+  /// PDFを保存し、共有ダイアログを表示（Android: Downloads, iOS: Documents）
+  static Future<void> saveAndShareInvoicePdf(String orderId) async {
+    try {
+      final filePath = await saveInvoicePdfToDownloads(orderId);
+      if (filePath == null) {
+        debugPrint('PDF保存に失敗しました');
+        return;
+      }
+      final params = ShareParams(
+        files: [XFile(filePath)],
+        text: '請求書PDFを共有します',
+      );
+      await SharePlus.instance.share(params);
+      debugPrint('共有ダイアログを表示しました: $filePath');
+    } catch (e) {
+      debugPrint('PDF保存・共有エラー: $e');
+    }
+  }
+
   /// 請求書データを生成（デバッグ情報付き）
   static Future<InvoiceData?> createInvoiceFromOrder(String orderId) async {
     try {
