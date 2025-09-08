@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'quantity_input.dart';
 
 class ProductSelector extends StatefulWidget {
-  final List<DocumentSnapshot> productTypes;
-  final List<DocumentSnapshot> products;
+  final List<dynamic> productTypes;
+  final List<dynamic> products;
   final String? initialTypeId;
   final String? initialProductId;
   final int initialQuantity;
@@ -34,9 +33,19 @@ class _ProductSelectorState extends State<ProductSelector> {
     super.initState();
     selectedTypeId =
         widget.initialTypeId ??
-        (widget.productTypes.isNotEmpty ? widget.productTypes.first.id : '');
+        (widget.productTypes.isNotEmpty
+            ? (widget.productTypes.first is Map
+                  ? widget.productTypes.first['id']
+                  : widget.productTypes.first.id)
+            : '');
     final filteredProducts = widget.products
-        .where((doc) => doc['type']?.toString() == selectedTypeId)
+        .where(
+          (doc) =>
+              (doc is Map
+                  ? doc['type']?.toString()
+                  : doc['type']?.toString()) ==
+              selectedTypeId,
+        )
         .toList();
     selectedProductId =
         widget.initialProductId ??
@@ -56,15 +65,35 @@ class _ProductSelectorState extends State<ProductSelector> {
           value: selectedTypeId,
           items: widget.productTypes.map((typeDoc) {
             final typeName = typeDoc['name'] ?? typeDoc.id;
-            return DropdownMenuItem(value: typeDoc.id, child: Text(typeName));
+            final id =
+                (typeDoc is Map ? typeDoc['id'] : typeDoc.id)?.toString() ?? '';
+            return DropdownMenuItem<String>(value: id, child: Text(typeName));
           }).toList(),
           onChanged: (value) {
             setState(() {
-              selectedTypeId = value ?? widget.productTypes.first.id;
+              selectedTypeId =
+                  value ??
+                  (widget.productTypes.first is Map
+                          ? widget.productTypes.first['id']
+                          : widget.productTypes.first.id)
+                      ?.toString() ??
+                  '';
               final filtered = widget.products
-                  .where((doc) => doc['type']?.toString() == selectedTypeId)
+                  .where(
+                    (doc) =>
+                        (doc is Map
+                            ? doc['type']?.toString()
+                            : doc['type']?.toString()) ==
+                        selectedTypeId,
+                  )
                   .toList();
-              selectedProductId = filtered.isNotEmpty ? filtered.first.id : '';
+              selectedProductId = filtered.isNotEmpty
+                  ? (filtered.first is Map
+                                ? filtered.first['id']
+                                : filtered.first.id)
+                            ?.toString() ??
+                        ''
+                  : '';
               widget.onChanged?.call(
                 selectedTypeId,
                 selectedProductId,
@@ -77,7 +106,8 @@ class _ProductSelectorState extends State<ProductSelector> {
           value: selectedProductId,
           items: filteredProducts.map((doc) {
             final name = doc['name'] ?? '';
-            return DropdownMenuItem(value: doc.id, child: Text(name));
+            final id = (doc is Map ? doc['id'] : doc.id)?.toString() ?? '';
+            return DropdownMenuItem<String>(value: id, child: Text(name));
           }).toList(),
           onChanged: (value) {
             setState(() {

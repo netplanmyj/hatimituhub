@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerItem extends StatelessWidget {
-  final DocumentSnapshot customer;
+  final dynamic customer;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -19,7 +18,9 @@ class CustomerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = customer.data() as Map<String, dynamic>? ?? {};
+    final data = customer is Map
+        ? customer as Map<String, dynamic>
+        : (customer.data() as Map<String, dynamic>? ?? {});
     final name = data['name'] ?? '';
     final address1 = data['address1'] ?? '';
     final tel = data['tel'] ?? '';

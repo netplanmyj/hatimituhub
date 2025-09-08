@@ -4,9 +4,9 @@ import 'customer_item.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomerList extends StatelessWidget {
-  final List<DocumentSnapshot> customerTypes;
+  final List<dynamic> customerTypes;
   final String selectedCustomerType;
-  final void Function(DocumentSnapshot customer)? onEdit;
+  final void Function(dynamic customer)? onEdit;
 
   const CustomerList({
     super.key,
@@ -62,5 +62,6 @@ class CustomerList extends StatelessWidget {
         );
       },
     );
+    // 不要な重複・誤ったListView.builder部分を削除
   }
 }
