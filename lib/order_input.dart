@@ -229,7 +229,7 @@ class _OrderInputPageState extends State<OrderInputPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('注文データを保存しました')),
                                 );
-                                Navigator.of(context).pop();
+                                Navigator.of(context).pop(true);
                               } catch (e) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(

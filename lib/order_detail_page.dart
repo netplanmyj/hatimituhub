@@ -214,6 +214,24 @@ class OrderDetailPage extends StatelessWidget {
                                         );
                                       },
                                     ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      tooltip: '明細削除',
+                                      onPressed: () async {
+                                        final orderItemsRef =
+                                            FirestoreService.getOrderItems(
+                                              orderId,
+                                            );
+                                        if (orderItemsRef != null) {
+                                          await orderItemsRef
+                                              .doc(items[idx].id)
+                                              .delete();
+                                        }
+                                      },
+                                    ),
                                   ],
                                 ),
                               );

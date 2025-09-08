@@ -95,10 +95,13 @@ class _OrderListPageState extends State<OrderListPage> {
           IconButton(
             icon: const Icon(Icons.add_shopping_cart),
             tooltip: '注文入力',
-            onPressed: () {
-              Navigator.of(context).push(
+            onPressed: () async {
+              final result = await Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const OrderInputPage()),
               );
+              if (result == true) {
+                fetchOrders(reset: true);
+              }
             },
           ),
           IconButton(

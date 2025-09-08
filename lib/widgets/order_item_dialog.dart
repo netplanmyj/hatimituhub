@@ -11,15 +11,13 @@ class OrderItemDialog extends StatefulWidget {
   final int initialQuantity;
   final String title;
   final void Function(String productId, int quantity, String? typeId) onSave;
-  final void Function()? onDelete;
-
+  // onDelete削除
   const OrderItemDialog({
     super.key,
     required this.products,
     required this.productTypes,
     required this.title,
     required this.onSave,
-    this.onDelete,
     this.initialProductId,
     this.initialTypeId,
     this.initialQuantity = 1,
@@ -37,14 +35,45 @@ class _OrderItemDialogState extends State<OrderItemDialog> {
   @override
   void initState() {
     super.initState();
+    // 型安全にid/type取得
     selectedProductId =
         widget.initialProductId ??
-        (widget.products.isNotEmpty ? widget.products.first.id : '');
+        (() {
+          if (widget.products.isNotEmpty) {
+            final first = widget.products.first;
+            if (first is Map) {
+              return first['id']?.toString() ?? '';
+            } else {
+              // DocumentSnapshot/QueryDocumentSnapshot
+              try {
+                return first.id.toString();
+              } catch (_) {
+                return '';
+              }
+            }
+          }
+          return '';
+        })();
     selectedTypeId =
         widget.initialTypeId ??
-        (widget.products.isNotEmpty
-            ? widget.products.first['type']?.toString() ?? ''
-            : '');
+        (() {
+          if (widget.products.isNotEmpty) {
+            final first = widget.products.first;
+            if (first is Map) {
+              return first['type']?.toString() ?? '';
+            } else {
+              try {
+                final data = first.data() as Map<String, dynamic>?;
+                return data != null && data['type'] != null
+                    ? data['type'].toString()
+                    : '';
+              } catch (_) {
+                return '';
+              }
+            }
+          }
+          return '';
+        })();
     selectedQuantity = widget.initialQuantity;
   }
 
@@ -72,17 +101,12 @@ class _OrderItemDialogState extends State<OrderItemDialog> {
         ],
       ),
       actions: [
-        if (widget.onDelete != null)
-          TextButton(
-            onPressed: widget.onDelete,
-            child: const Text('削除', style: TextStyle(color: Colors.red)),
-          ),
         TextButton(
           onPressed: () {
             widget.onSave(selectedProductId, selectedQuantity, selectedTypeId);
             Navigator.of(context).pop();
           },
-          child: Text(widget.onDelete != null ? '保存' : '追加'),
+          child: const Text('保存'),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -100,12 +124,11 @@ Future<void> orderItemEditDialog(
   String productId,
   int quantity,
 ) async {
-  final productsSnap = await FirebaseFirestore.instance
-      .collection('products')
-      .get();
-  final productTypesSnap = await FirebaseFirestore.instance
-      .collection('product_types')
-      .get();
+  final productsSnap = await FirestoreService.getCollectionSafely('products');
+  final productTypesSnap = await FirestoreService.getCollectionSafely(
+    'product_types',
+  );
+  if (productsSnap == null || productTypesSnap == null) return;
   final products = productsSnap.docs;
   final productTypes = productTypesSnap.docs;
   if (!context.mounted) return;
@@ -113,34 +136,41 @@ Future<void> orderItemEditDialog(
   showDialog(
     context: context,
     builder: (context) {
+      // 安全にtype取得
+      String? initialTypeId;
+      final found = products.cast<dynamic>().firstWhere(
+        (p) => (p is Map ? p['id']?.toString() : p.id.toString()) == productId,
+        orElse: () => null,
+      );
+      if (found is Map) {
+        initialTypeId = found['type']?.toString();
+      } else if (found != null) {
+        try {
+          final data = found.data() as Map<String, dynamic>?;
+          initialTypeId = data != null && data['type'] != null
+              ? data['type'].toString()
+              : null;
+        } catch (_) {
+          initialTypeId = null;
+        }
+      } else {
+        initialTypeId = null;
+      }
       return OrderItemDialog(
         products: products,
         productTypes: productTypes,
         initialProductId: productId,
-        initialTypeId: products
-            .firstWhere((p) => p.id == productId)['type']
-            ?.toString(),
+        initialTypeId: initialTypeId,
         initialQuantity: quantity,
         title: '明細編集',
         onSave: (selectedProductId, selectedQuantity, selectedTypeId) async {
-          await FirebaseFirestore.instance
-              .collection('orders')
-              .doc(orderId)
-              .collection('orderItems')
-              .doc(itemId)
-              .update({
-                'productId': selectedProductId,
-                'quantity': selectedQuantity,
-              });
-        },
-        onDelete: () async {
-          await FirebaseFirestore.instance
-              .collection('orders')
-              .doc(orderId)
-              .collection('orderItems')
-              .doc(itemId)
-              .delete();
-          if (context.mounted) Navigator.of(context).pop();
+          final orderItemsRef = FirestoreService.getOrderItems(orderId);
+          if (orderItemsRef != null) {
+            await orderItemsRef.doc(itemId).update({
+              'productId': selectedProductId,
+              'quantity': selectedQuantity,
+            });
+          }
         },
       );
     },
