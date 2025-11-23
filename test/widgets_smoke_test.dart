@@ -1,13 +1,13 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:honeysales/widgets/main_menu_widget.dart';
-import 'package:honeysales/widgets/quantity_input.dart';
-import 'package:honeysales/widgets/google_sign_in_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:honeysales/widgets/customer_item.dart';
-import 'package:honeysales/widgets/customer_dialog.dart';
-import 'package:honeysales/widgets/product_item.dart';
-import 'package:honeysales/widgets/customer_type_filter.dart';
-import 'package:honeysales/widgets/product_selector.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hatimituhub/widgets/main_menu_widget.dart';
+import 'package:hatimituhub/widgets/quantity_input.dart';
+import 'package:hatimituhub/widgets/google_sign_in_widget.dart';
+import 'package:hatimituhub/widgets/customer_item.dart';
+import 'package:hatimituhub/widgets/customer_dialog.dart';
+import 'package:hatimituhub/widgets/product_item.dart';
+import 'package:hatimituhub/widgets/customer_type_filter.dart';
+import 'package:hatimituhub/widgets/product_selector.dart';
 
 void main() {
   group('Widget smoke tests', () {

@@ -10,6 +10,7 @@ import '../product_type_master_page.dart';
 import '../product_category_master_page.dart';
 import '../tax_master_page.dart';
 import '../claimant_master_page.dart';
+import '../flavor_config.dart';
 
 class MainMenuWidget extends StatelessWidget {
   final User? user;
@@ -33,9 +34,10 @@ class MainMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final config = FlavorConfig.instance;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Googleサインインデモ'),
+        title: Text(config.isDev ? 'はちみつハブ (Dev)' : 'はちみつハブ'),
         actions: user != null
             ? [
                 IconButton(

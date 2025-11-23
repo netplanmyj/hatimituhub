@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:honeysales/main.dart';
+import 'package:hatimituhub/main.dart';
 
 // テスト用Userのモック
 class MockUser implements User {
@@ -18,9 +18,7 @@ class MockUser implements User {
 
 void main() {
   testWidgets('未ログイン状態では各ボタンが表示されない', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: HoneysalesHome(testUser: null)),
-    );
+    await tester.pumpWidget(MaterialApp(home: HatimituhubHome(testUser: null)));
     expect(find.byIcon(Icons.inventory), findsNothing);
     expect(find.byIcon(Icons.list_alt), findsNothing);
     expect(find.byIcon(Icons.add_shopping_cart), findsNothing);
@@ -30,7 +28,7 @@ void main() {
 
   testWidgets('ログイン状態では各ボタンが表示される', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: HoneysalesHome(testUser: MockUser())),
+      MaterialApp(home: HatimituhubHome(testUser: MockUser())),
     );
     expect(find.byIcon(Icons.inventory), findsOneWidget);
     expect(find.byIcon(Icons.list_alt), findsOneWidget);

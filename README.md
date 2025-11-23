@@ -1,6 +1,6 @@
-# honeysales
+# hatimituhub
 
-A new Flutter project.
+はちみつ販売管理アプリ
 
 ## Getting Started
 
