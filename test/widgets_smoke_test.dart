@@ -8,8 +8,13 @@ import 'package:hatimituhub/widgets/customer_dialog.dart';
 import 'package:hatimituhub/widgets/product_item.dart';
 import 'package:hatimituhub/widgets/customer_type_filter.dart';
 import 'package:hatimituhub/widgets/product_selector.dart';
+import 'package:hatimituhub/flavor_config.dart';
 
 void main() {
+  setUpAll(() {
+    FlavorConfig.initialize(flavor: Flavor.dev);
+  });
+
   group('Widget smoke tests', () {
     testWidgets('MainMenuWidget builds', (tester) async {
       await tester.pumpWidget(

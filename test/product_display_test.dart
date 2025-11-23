@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hatimituhub/main.dart';
+import 'package:hatimituhub/flavor_config.dart';
 
 // テスト用Userのモック
 class MockUser implements User {
@@ -17,6 +18,10 @@ class MockUser implements User {
 }
 
 void main() {
+  setUpAll(() {
+    FlavorConfig.initialize(flavor: Flavor.dev);
+  });
+
   testWidgets('未ログイン状態では各ボタンが表示されない', (WidgetTester tester) async {
     await tester.pumpWidget(MaterialApp(home: HatimituhubHome(testUser: null)));
     expect(find.byIcon(Icons.inventory), findsNothing);
