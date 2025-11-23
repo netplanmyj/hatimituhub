@@ -1,4 +1,4 @@
-package com.example.honeysales
+package jp.netplan.android.hatimituhub
 
 import io.flutter.embedding.android.FlutterActivity
 

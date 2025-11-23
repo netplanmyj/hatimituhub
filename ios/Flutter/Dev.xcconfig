@@ -1,0 +1,6 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "Release.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = jp.netplan.ios.hatimituhub.dev
+INFOPLIST_KEY_CFBundleDisplayName = はちみつハブ (Dev)
+FLUTTER_DART_DEFINES = FLAVOR=dev

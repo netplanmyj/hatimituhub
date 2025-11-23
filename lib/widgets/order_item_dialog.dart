@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
-import 'package:honeysales/widgets/product_selector.dart';
+import 'package:hatimituhub/widgets/product_selector.dart';
 
 class OrderItemDialog extends StatefulWidget {
   final List<DocumentSnapshot> products;

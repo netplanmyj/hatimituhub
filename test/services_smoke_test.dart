@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:honeysales/services/invoice_service.dart';
-import 'package:honeysales/services/invoice_template.dart';
-import 'package:honeysales/services/firestore_service.dart';
+import 'package:hatimituhub/services/invoice_service.dart';
+import 'package:hatimituhub/services/invoice_template.dart';
+import 'package:hatimituhub/services/firestore_service.dart';
 
 void main() {
   group('Service class smoke tests', () {
