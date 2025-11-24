@@ -20,7 +20,7 @@ mkdir hatimituhub-clean
 cd hatimituhub-clean
 
 # 現在のコードをコピー（.gitを除外）
-rsync -av --exclude='.git' /Users/uedakazuaki/GitHub/Flutter/hatimituhub/ .
+rsync -av --exclude='.git' /path/to/your/project/hatimituhub/ .
 
 # 新しいGitリポジトリとして初期化
 git init
