@@ -28,7 +28,7 @@ git add .
 git commit -m "Initial commit"
 
 # 新しいリモートリポジトリに接続
-git remote add origin https://github.com/netplanmyj/hatimituhub-public.git
+git remote add origin https://github.com/YOUR_USERNAME/hatimituhub-public.git
 git branch -M main
 git push -u origin main
 ```
