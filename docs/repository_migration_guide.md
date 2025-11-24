@@ -56,7 +56,7 @@ git push -u origin main
 ```bash
 # 注意: これは危険な操作です
 git filter-repo --email-callback '
-  return b"info@example.com" if email == b"kazuaki.ueda@gmail.com" else email
+  return b"info@example.com" if email == b"old-email@example.com" else email
 '
 ```
 
