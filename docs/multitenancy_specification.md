@@ -61,8 +61,7 @@
     - currency: string
     - dateFormat: string
 
-/team_members/{userId}
-  - teamId: string
+/teams/{teamId}/members/{userId}
   - role: string ("owner" | "admin" | "member" | "readonly")
   - joinedAt: timestamp
   - invitedBy: string // 招待者のuserId
@@ -171,7 +170,7 @@
    a. /users/{userId} ドキュメント作成
    b. デフォルトチーム作成 (チーム名: "{displayName}のチーム")
    c. /teams/{teamId} ドキュメント作成
-   d. /team_members/{userId} ドキュメント作成 (role: "owner")
+   d. /teams/{teamId}/members/{userId} ドキュメント作成 (role: "owner")
    e. 無料プランで開始 (subscriptionPlan: "free")
 3. 既存ユーザーの場合:
    a. 最後に使用したチームを activeTeamId として設定
@@ -186,7 +185,7 @@
    - プレミアムプラン: 無制限
 3. チーム作成:
    - /teams/{newTeamId} 作成
-   - /team_members/{userId} 更新 (新チームに紐付け)
+   - /teams/{newTeamId}/members/{userId} 作成 (新チームに紐付け)
    - activeTeamId を新チームに設定
 ```
 
@@ -197,7 +196,7 @@
 2. /team_invitations/{invitationId} 作成
 3. 招待メール送信 (オプション)
 4. 被招待者が招待コードでアクセス
-5. 承諾で /team_members/{userId} 作成
+5. 承諾で /teams/{teamId}/members/{userId} 作成
 6. チームのmemberCount インクリメント
 ```
 
@@ -217,29 +216,28 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    function getTeamMember() {
-      return get(/databases/$(database)/documents/team_members/$(request.auth.uid)).data;
+    function getTeamMember(teamId) {
+      return get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data;
     }
     
     function isTeamMember(teamId) {
       return isAuthenticated() && 
-             exists(/databases/$(database)/documents/team_members/$(request.auth.uid)) &&
-             getTeamMember().teamId == teamId &&
-             getTeamMember().status == 'active';
+             exists(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)) &&
+             getTeamMember(teamId).status == 'active';
     }
     
     function isTeamOwner(teamId) {
-      return isTeamMember(teamId) && getTeamMember().role == 'owner';
+      return isTeamMember(teamId) && getTeamMember(teamId).role == 'owner';
     }
     
     function isTeamAdmin(teamId) {
       return isTeamMember(teamId) && 
-             (getTeamMember().role == 'owner' || getTeamMember().role == 'admin');
+             (getTeamMember(teamId).role == 'owner' || getTeamMember(teamId).role == 'admin');
     }
     
     function hasWritePermission(teamId) {
       return isTeamMember(teamId) && 
-             getTeamMember().role != 'readonly';
+             getTeamMember(teamId).role != 'readonly';
     }
     
     // ユーザー情報
@@ -256,15 +254,15 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isTeamAdmin(teamId);
       allow delete: if isTeamOwner(teamId);
-    }
-    
-    // チームメンバー
-    match /team_members/{userId} {
-      allow read: if isAuthenticated() && 
-                     (request.auth.uid == userId || isTeamMember(resource.data.teamId));
-      allow create: if isAuthenticated();
-      allow update: if isTeamAdmin(resource.data.teamId);
-      allow delete: if isTeamOwner(resource.data.teamId);
+      
+      // チームメンバー（サブコレクション）
+      match /members/{userId} {
+        allow read: if isAuthenticated() && 
+                       (request.auth.uid == userId || isTeamMember(teamId));
+        allow create: if isAuthenticated();
+        allow update: if isTeamAdmin(teamId);
+        allow delete: if isTeamOwner(teamId);
+      }
     }
     
     // チーム招待
@@ -394,8 +392,14 @@ for (const user of existingUsers) {
   // チーム作成（teamId = userId）
   await createTeam(user.uid, `${user.displayName}のチーム`);
   
-  // team_members 作成
-  await createTeamMember(user.uid, user.uid, 'owner');
+  // team members 作成（サブコレクション）
+  await db.collection('teams').doc(user.uid)
+    .collection('members').doc(user.uid)
+    .set({
+      role: 'owner',
+      joinedAt: FieldValue.serverTimestamp(),
+      status: 'active'
+    });
   
   // データパスは変更なし（teamId = userId のため）
 }
