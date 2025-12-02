@@ -9,6 +9,7 @@ App Storeの審査ガイドラインにより、他のサードパーティ認�
 dependencies:
   firebase_auth: ^6.0.1
   sign_in_with_apple: ^6.1.3
+  crypto: ^3.0.6  # nonce生成のため必要
 ```
 
 ---
@@ -58,9 +59,30 @@ dependencies:
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  /// ランダムなnonceを生成
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  /// 文字列のSHA-256ハッシュを計算
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   // Apple Sign-In が利用可能かチェック
   Future<bool> isAppleSignInAvailable() async {
@@ -71,18 +93,23 @@ class AuthService {
   // Apple Sign-In
   Future<UserCredential?> signInWithApple() async {
     try {
-      // Apple認証リクエスト
+      // ランダムなnonceを生成（セキュリティ対策）
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Apple認証リクエスト（nonceを含める）
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        nonce: nonce,
       );
 
-      // OAuthCredential を作成
+      // OAuthCredential を作成（rawNonceを含める）
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
+        rawNonce: rawNonce,
       );
 
       // Firebaseにサインイン
@@ -288,13 +315,16 @@ flutter run --flavor dev --dart-define=FLAVOR=dev -d <デバイスID>
 
 ## セキュリティ上の注意
 
-### 1. メールアドレスの取り扱い
+### 1. Nonce によるリプレイアタック対策
+上記の実装では、ランダムなnonceを生成し、そのSHA-256ハッシュをAppleに送信することで、リプレイアタック（認証トークンの再利用）を防止しています。これはFirebaseの推奨する実装方法です。
+
+### 2. メールアドレスの取り扱い
 Apple Sign-In では、ユーザーがメールアドレスを非公開にすることができます。その場合、`privaterelay.appleid.com` のリレーメールが提供されます。
 
-### 2. ユーザー識別子
+### 3. ユーザー識別子
 Apple が提供する `userIdentifier` は永続的に同じ値が保証されていますが、アプリごとに異なります。
 
-### 3. 取り消し処理
+### 4. 取り消し処理
 ユーザーが「設定」アプリから Apple サインインを取り消した場合、アプリ側でもログアウト処理を実装する必要があります。
 
 ---

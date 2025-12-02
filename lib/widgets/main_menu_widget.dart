@@ -16,17 +16,9 @@ import '../services/auth_service.dart';
 
 class MainMenuWidget extends StatefulWidget {
   final User? user;
-  final VoidCallback onSignIn;
-  final VoidCallback onSignOut;
   final AuthService? authService; // テスト用
 
-  const MainMenuWidget({
-    super.key,
-    required this.user,
-    required this.onSignIn,
-    required this.onSignOut,
-    this.authService,
-  });
+  const MainMenuWidget({super.key, required this.user, this.authService});
 
   @override
   State<MainMenuWidget> createState() => _MainMenuWidgetState();
@@ -66,22 +58,22 @@ class _MainMenuWidgetState extends State<MainMenuWidget> {
   Future<void> _handleAppleSignIn() async {
     final userCredential = await _authService.signInWithApple();
     if (userCredential != null && mounted) {
-      // サインイン成功、画面は自動的に更新される
+      // ログイン成功、画面は自動的に更新される
     } else if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Appleサインインに失敗しました')));
+      ).showSnackBar(const SnackBar(content: Text('Appleログインに失敗しました')));
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
     final userCredential = await _authService.signInWithGoogle();
     if (userCredential != null && mounted) {
-      // サインイン成功、画面は自動的に更新される
+      // ログイン成功、画面は自動的に更新される
     } else if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Googleサインインに失敗しました')));
+      ).showSnackBar(const SnackBar(content: Text('Googleログインに失敗しました')));
     }
   }
 
@@ -166,7 +158,12 @@ class _MainMenuWidgetState extends State<MainMenuWidget> {
         Text('ログイン中: ${widget.user!.displayName ?? ''}'),
         Text('メール: ${widget.user!.email ?? ''}'),
         const SizedBox(height: 16),
-        ElevatedButton(onPressed: widget.onSignOut, child: const Text('ログアウト')),
+        ElevatedButton(
+          onPressed: () async {
+            await _authService.signOut();
+          },
+          child: const Text('ログアウト'),
+        ),
         const SizedBox(height: 24),
         _buildMainButtons(context),
       ],
@@ -210,10 +207,12 @@ class _MainMenuWidgetState extends State<MainMenuWidget> {
     }
 
     // BottomSheetの代わりに通常のページとして表示
-    // これなら親widgetのrebuildの影響を受けない
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const _SettingsMenuPage()));
+    // これなら親 widgetのrebuildの影響を受けない
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _SettingsMenuPage(user: widget.user),
+      ),
+    );
   }
 
   void _navigateWithAuth(BuildContext context, Widget page) {
@@ -227,7 +226,15 @@ class _MainMenuWidgetState extends State<MainMenuWidget> {
 
 // 設定メニューページ（通常のページとして表示）
 class _SettingsMenuPage extends StatelessWidget {
-  const _SettingsMenuPage();
+  final User? user;
+
+  const _SettingsMenuPage({required this.user});
+
+  void _showLoginRequiredSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('ログインが必要です')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +294,11 @@ class _SettingsMenuPage extends StatelessWidget {
       title: Text(title),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
+        // セッションが切れている可能性を考慮して再度認証チェック
+        if (user == null) {
+          _showLoginRequiredSnackBar(context);
+          return;
+        }
         Navigator.push(context, MaterialPageRoute(builder: (context) => page));
       },
     );

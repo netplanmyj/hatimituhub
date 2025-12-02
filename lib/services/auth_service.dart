@@ -66,11 +66,10 @@ class AuthService {
       debugPrint('🍎 Apple Sign-In: 認証情報取得成功');
 
       // OAuthCredential を作成（rawNonceを含める）
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-        rawNonce: rawNonce,
-      );
+      // Note: authorizationCodeはサーバー側のトークン交換用のため、ここでは使用しない
+      final oauthCredential = OAuthProvider(
+        "apple.com",
+      ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
 
       // Firebaseにサインイン
       final userCredential = await _auth.signInWithCredential(oauthCredential);
@@ -122,6 +121,7 @@ class AuthService {
       final googleAuth = googleUser.authentication;
 
       // Firebase認証情報作成
+      // Note: google_sign_in 7.x ではaccessTokenは直接取得できないため、idTokenのみを使用
       final credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );

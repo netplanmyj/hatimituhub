@@ -63,8 +63,6 @@ class _HatimituhubHomeState extends State<HatimituhubHome> {
       return MainMenuWidget(
         user: widget.testUser,
         authService: widget.authService,
-        onSignIn: () {},
-        onSignOut: () async {},
       );
     }
 
@@ -82,11 +80,6 @@ class _HatimituhubHomeState extends State<HatimituhubHome> {
         return MainMenuWidget(
           key: ValueKey(_currentUser?.uid), // uidが同じなら同じインスタンスを維持
           user: user,
-          onSignIn: () {}, // GoogleSignInWidgetを使わないため空実装
-          onSignOut: () async {
-            final authService = AuthService();
-            await authService.signOut();
-          },
         );
       },
     );
