@@ -102,7 +102,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      print('Apple Sign-In エラー: $e');
+      debugPrint('❌ Apple Sign-In エラー: $e');
       return null;
     }
   }

@@ -2,10 +2,31 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  /// ランダムなnonceを生成
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  /// 文字列のSHA-256ハッシュを計算
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   /// Apple Sign-In が利用可能かチェック
   Future<bool> isAppleSignInAvailable() async {
@@ -29,20 +50,26 @@ class AuthService {
     try {
       debugPrint('🍎 Apple Sign-In: 開始');
 
-      // Apple認証リクエスト
+      // ランダムなnonceを生成
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Apple認証リクエスト（nonceを含める）
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        nonce: nonce,
       );
 
       debugPrint('🍎 Apple Sign-In: 認証情報取得成功');
 
-      // OAuthCredential を作成
+      // OAuthCredential を作成（rawNonceを含める）
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
+        rawNonce: rawNonce,
       );
 
       // Firebaseにサインイン

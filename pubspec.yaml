@@ -21,6 +21,7 @@ dependencies:
   google_fonts: ^6.2.1
   http: ^1.5.0
   share_plus: ^11.1.0
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutterfire_cli: ^1.3.1

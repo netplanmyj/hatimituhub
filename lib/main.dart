@@ -84,7 +84,8 @@ class _HatimituhubHomeState extends State<HatimituhubHome> {
           user: user,
           onSignIn: () {}, // GoogleSignInWidgetを使わないため空実装
           onSignOut: () async {
-            await FirebaseAuth.instance.signOut();
+            final authService = AuthService();
+            await authService.signOut();
           },
         );
       },
