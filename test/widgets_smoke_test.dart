@@ -9,6 +9,7 @@ import 'package:hatimituhub/widgets/product_item.dart';
 import 'package:hatimituhub/widgets/customer_type_filter.dart';
 import 'package:hatimituhub/widgets/product_selector.dart';
 import 'package:hatimituhub/flavor_config.dart';
+import 'helpers/mock_auth_service.dart';
 
 void main() {
   setUpAll(() {
@@ -19,7 +20,7 @@ void main() {
     testWidgets('MainMenuWidget builds', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: MainMenuWidget(user: null, onSignIn: () {}, onSignOut: () {}),
+          home: MainMenuWidget(user: null, authService: MockAuthService()),
         ),
       );
       expect(find.byType(MainMenuWidget), findsOneWidget);

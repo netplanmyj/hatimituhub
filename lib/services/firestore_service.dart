@@ -95,11 +95,20 @@ class FirestoreService {
     String collectionName,
   ) async {
     final collection = getTeamCollection(collectionName);
-    if (collection == null) return null;
+    if (collection == null) {
+      debugPrint('❌ getCollectionSafely: collection is null (ユーザー未認証)');
+      return null;
+    }
 
     try {
-      return await collection.get();
+      debugPrint('📥 getCollectionSafely: $collectionName を取得中...');
+      final result = await collection.get();
+      debugPrint(
+        '✅ getCollectionSafely: $collectionName 取得成功 (${result.docs.length}件)',
+      );
+      return result;
     } catch (e) {
+      debugPrint('❌ getCollectionSafely: $collectionName 取得エラー: $e');
       return null;
     }
   }

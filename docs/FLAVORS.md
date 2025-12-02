@@ -5,8 +5,8 @@
 
 ## Firebase プロジェクト構成
 
-- **開発環境（dev）**: 既存のFirebaseプロジェクト `honeysales` を使用
-- **本番環境（prod）**: 新規に作成する本番用Firebaseプロジェクトを使用
+- **開発環境（dev）**: `hatimituhub-dev`
+- **本番環境（prod）**: `hatimituhub`
 
 ## 開発環境（dev）での実行方法
 
@@ -59,7 +59,7 @@ flutter build ios --flavor prod --dart-define=FLAVOR=prod --xcconfig=ios/Flutter
 ### 1. Firebaseプロジェクトを作成
 1. [Firebase Console](https://console.firebase.google.com/) にアクセス
 2. 「プロジェクトを追加」をクリック
-3. プロジェクト名を入力（例：`hatimituhub-prod`）
+3. プロジェクト名を入力（`hatimituhub` = 本番用、または既に作成済み）
 4. Googleアナリティクスは任意で設定
 5. プロジェクトを作成
 
@@ -92,16 +92,19 @@ flutter build ios --flavor prod --dart-define=FLAVOR=prod --xcconfig=ios/Flutter
    - ストレージを有効化
    - セキュリティルールを設定
 
-### 5. 設定ファイルの更新
-`lib/flavor_config.dart` の本番環境設定を更新:
-```dart
-case Flavor.prod:
-  _instance = FlavorConfig._(
-    flavor: Flavor.prod,
-    name: 'Production',
-    firebaseProjectId: 'hatimituhub-prod', // ← 実際のプロジェクトIDに変更
-  );
+### 5. FlutterFire CLI で設定を更新
+
+プロジェクトルートで以下のコマンドを実行して `firebase_options.dart` を自動生成:
+
+```bash
+# FlutterFire CLI がインストールされていない場合
+dart pub global activate flutterfire_cli
+
+# Firebaseプロジェクトの設定を生成
+flutterfire configure --project=hatimituhub
 ```
+
+対話形式でプラットフォーム（android, ios）を選択すると、自動的に設定ファイルが更新されます。
 
 ## Bundle Identifier / Package Name
 

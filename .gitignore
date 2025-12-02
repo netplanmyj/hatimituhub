@@ -46,6 +46,10 @@ app.*.map.json
 /android/app/build/
 /android/build/
 
+# iOS build artifacts
+/ios/build/
+ios/build/
+
 # VS Code
 .vscode/
 

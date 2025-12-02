@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB2KjMbSlM90c3FOFoO4UQ1Vs1dagG2HCw',
-    appId: '1:55242870581:android:5058927fc91d5d999c467c',
-    messagingSenderId: '55242870581',
-    projectId: 'honeysales-9fc34',
-    storageBucket: 'honeysales-9fc34.firebasestorage.app',
+    apiKey: 'AIzaSyD25BFVgo8XeGIa1Tc7R5nQR_olQnoikRk',
+    appId: '1:947749136128:android:9ba6a20e0a7e99cdd875e5',
+    messagingSenderId: '947749136128',
+    projectId: 'hatimituhub-dev',
+    storageBucket: 'hatimituhub-dev.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAOXsD9eR8V5zcgMmfJz3gnpkYKD_N_H6Q',
-    appId: '1:55242870581:ios:9c4f5ccd15ac6c5e9c467c',
-    messagingSenderId: '55242870581',
-    projectId: 'honeysales-9fc34',
-    storageBucket: 'honeysales-9fc34.firebasestorage.app',
-    iosBundleId: 'jp.netplan.ios.honeysales',
+    apiKey: 'AIzaSyCsus-iAQUG0AwPgS_oPTTKheW6MotdRLU',
+    appId: '1:947749136128:ios:0f413d7698005063d875e5',
+    messagingSenderId: '947749136128',
+    projectId: 'hatimituhub-dev',
+    storageBucket: 'hatimituhub-dev.firebasestorage.app',
+    iosBundleId: 'jp.netplan.ios.hatimituhub.dev',
   );
 }

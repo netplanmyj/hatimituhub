@@ -31,14 +31,14 @@
 			<string>REVERSED_CLIENT_ID</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.55242870581-5e3dsotnn591f5tpgvp79kk8nrke3hah</string>
+				<string>com.googleusercontent.apps.947749136128-hofb2cde3t1bm1f3qt444rr229vlf1jm</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>GIDClientID</key>
-	<string>55242870581-5e3dsotnn591f5tpgvp79kk8nrke3hah.apps.googleusercontent.com</string>
+	<string>947749136128-hofb2cde3t1bm1f3qt444rr229vlf1jm.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
