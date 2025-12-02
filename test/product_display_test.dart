@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hatimituhub/main.dart';
 import 'package:hatimituhub/flavor_config.dart';
+import 'package:hatimituhub/services/auth_service.dart';
 
 // テスト用Userのモック
 class MockUser implements User {
@@ -17,13 +18,38 @@ class MockUser implements User {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+// テスト用AuthServiceのモック
+class MockAuthService implements AuthService {
+  @override
+  Future<bool> isAppleSignInAvailable() async => false;
+
+  @override
+  Future<UserCredential?> signInWithApple() async => null;
+
+  @override
+  Future<UserCredential?> signInWithGoogle() async => null;
+
+  @override
+  Future<void> signOut() async {}
+
+  @override
+  User? get currentUser => null;
+
+  @override
+  Stream<User?> get authStateChanges => Stream.value(null);
+}
+
 void main() {
   setUpAll(() {
     FlavorConfig.initialize(flavor: Flavor.dev);
   });
 
   testWidgets('未ログイン状態では各ボタンが表示されない', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(home: HatimituhubHome(testUser: null)));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HatimituhubHome(testUser: null, authService: MockAuthService()),
+      ),
+    );
     expect(find.byIcon(Icons.inventory), findsNothing);
     expect(find.byIcon(Icons.list_alt), findsNothing);
     expect(find.byIcon(Icons.add_shopping_cart), findsNothing);
@@ -33,7 +59,12 @@ void main() {
 
   testWidgets('ログイン状態では各ボタンが表示される', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: HatimituhubHome(testUser: MockUser())),
+      MaterialApp(
+        home: HatimituhubHome(
+          testUser: MockUser(),
+          authService: MockAuthService(),
+        ),
+      ),
     );
     expect(find.byIcon(Icons.inventory), findsOneWidget);
     expect(find.byIcon(Icons.list_alt), findsOneWidget);

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'flavor_config.dart';
 import 'widgets/main_menu_widget.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   // Flavorの初期化
@@ -30,14 +31,23 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const HatimituhubHome(),
+      home: const HatimituhubHome.production(),
     );
   }
 }
 
 class HatimituhubHome extends StatefulWidget {
   final User? testUser;
-  const HatimituhubHome({super.key, this.testUser});
+  final bool isTestMode;
+  final AuthService? authService; // テスト用
+
+  const HatimituhubHome({super.key, this.testUser, this.authService})
+    : isTestMode = true;
+
+  const HatimituhubHome.production({super.key})
+    : testUser = null,
+      authService = null,
+      isTestMode = false;
 
   @override
   State<HatimituhubHome> createState() => _HatimituhubHomeState();
@@ -48,6 +58,16 @@ class _HatimituhubHomeState extends State<HatimituhubHome> {
 
   @override
   Widget build(BuildContext context) {
+    // テストモードの場合はtestUserを直接使用
+    if (widget.isTestMode) {
+      return MainMenuWidget(
+        user: widget.testUser,
+        authService: widget.authService,
+        onSignIn: () {},
+        onSignOut: () async {},
+      );
+    }
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {

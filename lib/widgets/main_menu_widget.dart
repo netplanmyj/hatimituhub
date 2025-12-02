@@ -18,12 +18,14 @@ class MainMenuWidget extends StatefulWidget {
   final User? user;
   final VoidCallback onSignIn;
   final VoidCallback onSignOut;
+  final AuthService? authService; // テスト用
 
   const MainMenuWidget({
     super.key,
     required this.user,
     required this.onSignIn,
     required this.onSignOut,
+    this.authService,
   });
 
   @override
@@ -31,12 +33,13 @@ class MainMenuWidget extends StatefulWidget {
 }
 
 class _MainMenuWidgetState extends State<MainMenuWidget> {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService;
   bool _isAppleSignInAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    _authService = widget.authService ?? AuthService();
     _checkAppleSignInAvailability();
   }
 
