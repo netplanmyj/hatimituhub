@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'flavor_config.dart';
-import 'widgets/google_sign_in_widget.dart';
 import 'widgets/main_menu_widget.dart';
 
 void main() async {
@@ -45,19 +44,28 @@ class HatimituhubHome extends StatefulWidget {
 }
 
 class _HatimituhubHomeState extends State<HatimituhubHome> {
-  final GlobalKey<GoogleSignInWidgetState> _signInKey =
-      GlobalKey<GoogleSignInWidgetState>();
+  User? _currentUser;
 
   @override
   Widget build(BuildContext context) {
-    return GoogleSignInWidget(
-      key: _signInKey,
-      testUser: widget.testUser,
-      childBuilder: (user) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+
+        // ユーザーが実質的に変わっていない場合は、既存のWidgetを再利用
+        final bool userChanged = _currentUser?.uid != user?.uid;
+        if (userChanged) {
+          _currentUser = user;
+        }
+
         return MainMenuWidget(
+          key: ValueKey(_currentUser?.uid), // uidが同じなら同じインスタンスを維持
           user: user,
-          onSignIn: () => _signInKey.currentState?.signInWithGoogle(),
-          onSignOut: () => _signInKey.currentState?.signOut(),
+          onSignIn: () {}, // GoogleSignInWidgetを使わないため空実装
+          onSignOut: () async {
+            await FirebaseAuth.instance.signOut();
+          },
         );
       },
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../order_input.dart';
 import '../order_list_page.dart';
 import '../product_master_page.dart';
@@ -11,8 +12,9 @@ import '../product_category_master_page.dart';
 import '../tax_master_page.dart';
 import '../claimant_master_page.dart';
 import '../flavor_config.dart';
+import '../services/auth_service.dart';
 
-class MainMenuWidget extends StatelessWidget {
+class MainMenuWidget extends StatefulWidget {
   final User? user;
   final VoidCallback onSignIn;
   final VoidCallback onSignOut;
@@ -24,8 +26,64 @@ class MainMenuWidget extends StatelessWidget {
     required this.onSignOut,
   });
 
+  @override
+  State<MainMenuWidget> createState() => _MainMenuWidgetState();
+}
+
+class _MainMenuWidgetState extends State<MainMenuWidget> {
+  final AuthService _authService = AuthService();
+  bool _isAppleSignInAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAppleSignInAvailability();
+  }
+
+  @override
+  void didUpdateWidget(MainMenuWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // ユーザーのUIDが同じ場合は、実質的な変更がないので何もしない
+    // これによりBottomSheetが開いている間の不要な再ビルドを防ぐ
+    if (oldWidget.user?.uid == widget.user?.uid) {
+      return;
+    }
+    debugPrint(
+      '🔄 MainMenuWidget: user actually changed from ${oldWidget.user?.email} to ${widget.user?.email}',
+    );
+  }
+
+  Future<void> _checkAppleSignInAvailability() async {
+    final isAvailable = await _authService.isAppleSignInAvailable();
+    setState(() {
+      _isAppleSignInAvailable = isAvailable;
+    });
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    final userCredential = await _authService.signInWithApple();
+    if (userCredential != null && mounted) {
+      // サインイン成功、画面は自動的に更新される
+    } else if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Appleサインインに失敗しました')));
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final userCredential = await _authService.signInWithGoogle();
+    if (userCredential != null && mounted) {
+      // サインイン成功、画面は自動的に更新される
+    } else if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Googleサインインに失敗しました')));
+    }
+  }
+
   void showLoginRequiredSnackBar(BuildContext context) {
-    if (user == null) {
+    if (widget.user == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('ログインが必要です')));
@@ -38,7 +96,7 @@ class MainMenuWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(config.isDev ? 'はちみつハブ (Dev)' : 'はちみつハブ'),
-        actions: user != null
+        actions: widget.user != null
             ? [
                 IconButton(
                   icon: const Icon(Icons.settings),
@@ -48,13 +106,40 @@ class MainMenuWidget extends StatelessWidget {
             : null,
       ),
       body: Center(
-        child: user == null
-            ? ElevatedButton(
-                onPressed: onSignIn,
-                child: const Text('Googleでログイン'),
-              )
+        child: widget.user == null
+            ? _buildLoginButtons()
             : _buildUserContent(context),
       ),
+    );
+  }
+
+  Widget _buildLoginButtons() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Apple Sign-in button (iOS only)
+        if (_isAppleSignInAvailable)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+            child: SignInWithAppleButton(
+              onPressed: _handleAppleSignIn,
+              text: 'Appleでログイン',
+              height: 50,
+            ),
+          ),
+
+        // Google Sign-in button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+          child: ElevatedButton(
+            onPressed: _handleGoogleSignIn,
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text('Googleでログイン'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -64,19 +149,21 @@ class MainMenuWidget extends StatelessWidget {
       children: [
         CircleAvatar(
           backgroundImage:
-              (user!.photoURL != null && user!.photoURL!.isNotEmpty)
-              ? NetworkImage(user!.photoURL!)
+              (widget.user!.photoURL != null &&
+                  widget.user!.photoURL!.isNotEmpty)
+              ? NetworkImage(widget.user!.photoURL!)
               : null,
           radius: 40,
-          child: (user!.photoURL == null || user!.photoURL!.isEmpty)
+          child:
+              (widget.user!.photoURL == null || widget.user!.photoURL!.isEmpty)
               ? const Icon(Icons.person, size: 40)
               : null,
         ),
         const SizedBox(height: 16),
-        Text('ログイン中: ${user!.displayName ?? ''}'),
-        Text('メール: ${user!.email ?? ''}'),
+        Text('ログイン中: ${widget.user!.displayName ?? ''}'),
+        Text('メール: ${widget.user!.email ?? ''}'),
         const SizedBox(height: 16),
-        ElevatedButton(onPressed: onSignOut, child: const Text('ログアウト')),
+        ElevatedButton(onPressed: widget.onSignOut, child: const Text('ログアウト')),
         const SizedBox(height: 24),
         _buildMainButtons(context),
       ],
@@ -114,61 +201,80 @@ class MainMenuWidget extends StatelessWidget {
   }
 
   void _showSettingsMenu(BuildContext context) {
-    if (user == null) {
+    if (widget.user == null) {
       showLoginRequiredSnackBar(context);
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildSettingsItem(
-              context,
-              icon: Icons.receipt_long,
-              title: '請求者情報管理',
-              page: const ClaimantMasterPage(),
-            ),
-            _buildSettingsItem(
-              context,
-              icon: Icons.percent,
-              title: '税率マスタ管理',
-              page: TaxMasterPage(),
-            ),
-            _buildSettingsItem(
-              context,
-              icon: Icons.data_usage,
-              title: '初期セットアップ',
-              page: InitialSetupPage(),
-            ),
-            _buildSettingsItem(
-              context,
-              icon: Icons.category,
-              title: '顧客区分管理',
-              page: CustomerTypeMasterPage(),
-            ),
-            _buildSettingsItem(
-              context,
-              icon: Icons.label,
-              title: '商品区分管理',
-              page: ProductTypeMasterPage(),
-            ),
-            _buildSettingsItem(
-              context,
-              icon: Icons.list,
-              title: '商品種別管理',
-              page: ProductCategoryMasterPage(),
-            ),
-          ],
-        );
-      },
+    // BottomSheetの代わりに通常のページとして表示
+    // これなら親widgetのrebuildの影響を受けない
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const _SettingsMenuPage()));
+  }
+
+  void _navigateWithAuth(BuildContext context, Widget page) {
+    if (widget.user == null) {
+      showLoginRequiredSnackBar(context);
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+  }
+}
+
+// 設定メニューページ（通常のページとして表示）
+class _SettingsMenuPage extends StatelessWidget {
+  const _SettingsMenuPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('設定')),
+      body: ListView(
+        children: [
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.receipt_long,
+            title: '請求者情報管理',
+            page: ClaimantMasterPage(),
+          ),
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.percent,
+            title: '税率マスタ管理',
+            page: TaxMasterPage(),
+          ),
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.data_usage,
+            title: '初期セットアップ',
+            page: InitialSetupPage(),
+          ),
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.category,
+            title: '顧客区分管理',
+            page: CustomerTypeMasterPage(),
+          ),
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.label,
+            title: '商品区分管理',
+            page: ProductTypeMasterPage(),
+          ),
+          _buildSettingsItem(
+            context: context,
+            icon: Icons.list,
+            title: '商品種別管理',
+            page: ProductCategoryMasterPage(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSettingsItem(
-    BuildContext context, {
+  Widget _buildSettingsItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required Widget page,
@@ -176,22 +282,10 @@ class MainMenuWidget extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () {
-        if (user == null) {
-          showLoginRequiredSnackBar(context);
-          return;
-        }
-        Navigator.pop(context);
         Navigator.push(context, MaterialPageRoute(builder: (context) => page));
       },
     );
-  }
-
-  void _navigateWithAuth(BuildContext context, Widget page) {
-    if (user == null) {
-      showLoginRequiredSnackBar(context);
-      return;
-    }
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
   }
 }

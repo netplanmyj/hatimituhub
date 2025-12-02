@@ -17,6 +17,7 @@ class _OrderInputPageState extends State<OrderInputPage> {
   List<DocumentSnapshot> customers = [];
   List<DocumentSnapshot> products = [];
   List<DocumentSnapshot> productTypes = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -25,6 +26,8 @@ class _OrderInputPageState extends State<OrderInputPage> {
   }
 
   Future<void> fetchInitialData() async {
+    debugPrint('📦 注文入力: 初期データ取得開始');
+
     final customerSnap = await FirestoreService.getCollectionSafely(
       'customers',
     );
@@ -37,21 +40,41 @@ class _OrderInputPageState extends State<OrderInputPage> {
         productSnap == null ||
         productTypeSnap == null) {
       // 認証エラーまたは取得エラー
+      debugPrint('❌ 注文入力: データ取得失敗');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('データの取得に失敗しました。ログインしているか確認してください。'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
+    }
+
+    debugPrint('✅ 注文入力: データ取得成功');
+
+    // デバッグ: 商品データの構造を確認
+    if (productSnap.docs.isNotEmpty) {
+      final firstProduct = productSnap.docs.first;
+      debugPrint('🔍 商品データ構造: ${firstProduct.data()}');
     }
 
     setState(() {
       customers = customerSnap.docs;
       products = productSnap.docs;
       productTypes = productTypeSnap.docs;
+      isLoading = false;
       if (customers.isNotEmpty) {
         selectedCustomerId = customers.first.id;
       }
       if (orderItems.isEmpty && products.isNotEmpty) {
+        final firstProduct = products.first;
+        final data = firstProduct.data() as Map<String, dynamic>;
         orderItems.add({
-          'productId': products.first.id,
+          'productId': firstProduct.id,
           'quantity': 1,
-          'typeId': products.first['type']?.toString(),
+          'typeId': data.containsKey('type') ? data['type']?.toString() : null,
         });
       }
     });
@@ -60,10 +83,15 @@ class _OrderInputPageState extends State<OrderInputPage> {
   void addOrderItem() {
     setState(() {
       final firstProduct = products.isNotEmpty ? products.first : null;
+      final data = firstProduct?.data() as Map<String, dynamic>?;
+      String? typeId;
+      if (data != null && data.containsKey('type')) {
+        typeId = data['type']?.toString();
+      }
       orderItems.add({
         'productId': firstProduct?.id,
         'quantity': 1,
-        'typeId': firstProduct?['type']?.toString(),
+        'typeId': typeId,
       });
     });
   }
@@ -78,8 +106,50 @@ class _OrderInputPageState extends State<OrderInputPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('注文入力')),
-      body: customers.isEmpty || products.isEmpty || productTypes.isEmpty
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : (customers.isEmpty || products.isEmpty || productTypes.isEmpty)
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'マスタデータが登録されていません',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      customers.isEmpty ? '• 顧客マスタ\n' : '',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    Text(
+                      products.isEmpty ? '• 商品マスタ\n' : '',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    Text(
+                      productTypes.isEmpty ? '• 商品区分マスタ\n' : '',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '先にマスタ登録を完了してください。',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
